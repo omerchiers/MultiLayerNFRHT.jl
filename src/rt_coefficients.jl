@@ -76,9 +76,7 @@ end
 
 function rt(struct :: MultiLayer, pol :: Polarization, kx ,w)
 
-    eps = permittivity(struct[1].material,w)
-
-    ab_matrix :: Array{Complex128,2} = abeles_matrix(struct,pol,kx,w)
+    ab_matrix  = abeles_matrix(struct,pol,kx,w)
 
     r = ab_matrix[2,1]/ab_matrix[1,1]
     t = (1.0+im*0.0)/ab_matrix[1,1]
@@ -86,8 +84,8 @@ function rt(struct :: MultiLayer, pol :: Polarization, kx ,w)
     return r, t
 end
 
-function abeles_matrix(struct :: MultiLayer, pol :: Polarization, kx, w)
-    ab_matrix  = eye(Complex128,2)
+function abeles_matrix(struct :: MultiLayer, pol :: Polarization, kx, w) :: Array{Complex128,2}
+    ab_matrix  = [1.0+0.0*im  0.0+0.0*im ; 0.0+0.0*im  1.0+0.0*im ]
 
     for i=2:length(struct)
         mat1  = struct[i-1].material
@@ -98,9 +96,9 @@ function abeles_matrix(struct :: MultiLayer, pol :: Polarization, kx, w)
 
         r,t = rt(Bulk(mat1,mat2), pol , kx ,w)
 
-        interface_matrix = [1.0+im*0.0  r ; r  1.0+im*0.0 ]/t
+        interface_matrix :: Array{Complex128,2} = [1.0+im*0.0  r ; r  1.0+im*0.0 ]/t
         beta             = struct[i].thickness*k2z
-        layer_matrix     = [exp(-im*beta) 0.0+im*0.0 ; 0.0+im*0.0 exp(im*beta)]
+        layer_matrix     :: Array{Complex128,2} = [exp(-im*beta) 0.0+im*0.0 ; 0.0+im*0.0 exp(im*beta)]
         ab_matrix        = ab_matrix*(interface_matrix*layer_matrix)
     end
     return ab_matrix

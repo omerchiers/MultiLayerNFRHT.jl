@@ -18,7 +18,7 @@ function main(material :: BulkOrMultiLayer ,w1,w2,N)
         em_w[i] = emissivity_w(material, wv[i])
 #        eps_w[i] = permittivity(sic(),wv[i])
     end
-    println(mean(em_w))
+#    println(mean(em_w))
     #plot(wv,real(eps_w))
     plot(wv,em_w)
     xaxis!(:log10)
