@@ -8,10 +8,8 @@ BulkOrMultiLayer = Union{Bulk,MultiLayer}
 function emissivity_kx_w(struct :: BulkOrMultiLayer, kx, w)
 # Monocromatic emissivity
 
-    ang = compute_ang(kx,1.0+0.0*im,w)
-
-    (rte,t)=rt(struct, te(),ang,w)
-    (rtm,t)=rt(struct, tm(),ang,w)
+    (rte,t)=rt(struct, te(),kx,w)
+    (rtm,t)=rt(struct, tm(),kx,w)
 
     integr1 = 1.0-abs(rte)^2
     integr2 = 1.0-abs(rtm)^2

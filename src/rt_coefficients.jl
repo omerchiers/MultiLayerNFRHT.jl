@@ -59,12 +59,11 @@ function rt(struct :: Bulk, pol :: tm, k0z,k2z,w)
 end
 
 # Fresnel coefficient of a semi-infinite medium : as a function of incidence angle and frequency
-function rt(struct :: Bulk, pol :: Polarization, angle ,w)
+function rt(struct :: Bulk, pol :: Polarization, kx ,w)
 
     eps1 = permittivity(struct.ep1,w)
     eps2 = permittivity(struct.ep2,w)
 
-    kx    = compute_kx(angle,eps1,w)
     k0z   = compute_kz(kx,eps1,w)
     k2z   = compute_kz(kx,eps2,w)
 
@@ -75,10 +74,9 @@ end
 
 # Fresnel coefficient of a multilayered semi-infinite medium : as a function of incidence angle and frequency
 
-function rt(struct :: MultiLayer, pol :: Polarization, angle ,w)
+function rt(struct :: MultiLayer, pol :: Polarization, kx ,w)
 
     eps = permittivity(struct[1].material,w)
-    kx  = compute_kx(angle,eps,w)
 
     ab_matrix :: Array{Complex128,2} = abeles_matrix(struct,pol,kx,w)
 
@@ -89,17 +87,16 @@ function rt(struct :: MultiLayer, pol :: Polarization, angle ,w)
 end
 
 function abeles_matrix(struct :: MultiLayer, pol :: Polarization, kx, w)
-    ab_matrix        = eye(Complex128,2)
+    ab_matrix  = eye(Complex128,2)
 
     for i=2:length(struct)
         mat1  = struct[i-1].material
         mat2  = struct[i].material
-        eps1  = permittivity(mat1,w)
-        eps2  = permittivity(mat2,w)
 
-        k0z   = compute_kz(kx,eps1,w)
+        eps2  = permittivity(mat2,w)
         k2z   = compute_kz(kx,eps2,w)
-        r,t   = rt(Bulk(mat1,mat2),pol,k0z,k2z,w)
+
+        r,t = rt(Bulk(mat1,mat2), pol , kx ,w)
 
         interface_matrix = [1.0+im*0.0  r ; r  1.0+im*0.0 ]/t
         beta             = struct[i].thickness*k2z
