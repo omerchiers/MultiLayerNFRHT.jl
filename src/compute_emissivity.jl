@@ -1,4 +1,5 @@
 
+module Tmp
 using Plots
 
 include("physical_constants.jl")
@@ -6,7 +7,7 @@ include("optical_properties.jl")
 include("rt_coefficients.jl")
 include("emissivity.jl")
 include("heat_transfer.jl")
-
+include("SPP.jl")
 
 function main(material :: BulkOrMultiLayer ,w1,w2,N)
 
@@ -22,4 +23,5 @@ function main(material :: BulkOrMultiLayer ,w1,w2,N)
     #plot(wv,real(eps_w))
     plot(wv,em_w)
     xaxis!(:log10)
+end
 end
