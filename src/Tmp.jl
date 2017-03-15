@@ -1,7 +1,3 @@
-module Tmp
- include("optical_properties.jl")
- include("fresnel_coefficients.jl")
-end
 
 
 function abeles_matrix(pol::te,layer :: Layer )
