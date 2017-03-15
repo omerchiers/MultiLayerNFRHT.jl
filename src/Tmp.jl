@@ -72,3 +72,30 @@ end
 Layer(material) = Layer(material,0.0) # Defines a semi-infinite layer
 
 typealias MultiLayer Vector{Layer}  # Defines a multilayer
+
+" Total transmission coefficient in kₓ-ω space "
+function transmission(b1 :: MultiLayer, b2 :: MultiLayer, gap :: Layer ,pol :: Polarization , kx ,w)
+    if k_x <= (w/c0)
+        return propagative(b1,b2,gap,pol,kx,w)
+    if k_x  >  (w/c0)
+        return evanescent(b1,b2,gap,pol,kx,w)
+    end
+end
+
+function heat_transfer_w(field :: TotalField ,b1 :: MultiLayer, b2 :: MultiLayer, gap :: Layer ,pol :: Polarization ,w, T1,T2)
+    t_w  = transmission_w(field,b1,b2,gap,pol,w)
+    be_w = bose_einstein(w,T2) - bose_einstein(w,T1)
+    return be_w*t_w/8.0/pi^3
+end
+
+" Net heat transfer "
+function heat_transfer(field :: TotalField ,b1 :: MultiLayer, b2 :: MultiLayer, gap :: Layer ,pol :: Polarization, T1,T2)
+    q_w(w)  = heat_transfer_w(field,b1,b2,gap,pol,w,T1,T2)
+    q2_w(t) = q_w(t/(1.0-t))/(1.0-t)^2
+
+    val :: Float64  = 0.0
+    err :: Float64  = 0.0
+    (val,err) = hquadrature(q2_w, 0.0 , 1.0 ; reltol=1e-8, abstol=0, maxevals=100)
+    return val*(kb*T1)/ħ
+
+end
