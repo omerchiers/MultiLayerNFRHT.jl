@@ -6,8 +6,6 @@ immutable Propagative <: TotalField end
 
 
 " Far-field heat transfer between two semi-infinite media,classical approximation "
-
-
 function farfield_transfer(em1 , em2, T1, T2)
 
     return sigma*(T2^4-T1^4)/(1.0/em1 + 1.0/em2 - 1.0)
@@ -114,7 +112,7 @@ function heat_flux2(field :: Propagative ,b1 :: LayerOrMultiLayer, b2 :: LayerOr
       val :: Float64  = 0.0
       err :: Float64  = 0.0
       (val,err) = hcubature(q_w, xmin , xmax ; reltol=tol, abstol=0, maxevals=0)
-    return  val*kb*T/ħ/4.0/pi^2 #q_w([1.0e4;1.0e15]) 
+    return  val*kb*T/ħ/4.0/pi^2 #q_w([1.0e4;1.0e15])
 end
 
 function heat_flux2(field :: Evanescent ,b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, gap :: Layer ,pol :: Polarization , T,tol)
