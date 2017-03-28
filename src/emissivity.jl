@@ -7,7 +7,14 @@ LayerOrMultiLayer = Union{Layer,MultiLayer}
 
 # Factors
 function bose_einstein(w,T)
-    ħ*w/(exp(ħ*w/kb/T)-1.0)
+    if T==0
+        return 0.0
+    end
+    if w==0.0
+        return kb*T
+    end
+
+    return ħ*w/(exp(ħ*w/kb/T)-1.0)
 end
 
 function planck(w,T)
