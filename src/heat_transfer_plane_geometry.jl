@@ -1,8 +1,4 @@
-# This file contains the functions for heat transfer
-
-abstract TotalField
-immutable Evanescent  <: TotalField end
-immutable Propagative <: TotalField end
+# This file contains the functions for heat transfer between plane geometries
 
 
 " Far-field heat transfer between two semi-infinite media,classical approximation "
@@ -50,7 +46,7 @@ end
 
 
 " Monocromatic transmission "
-function transmission_w(field :: Evanescent ,b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, gap :: Layer ,pol :: Polarization ,w)
+function transmission_w(field :: Evanescent ,b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, gap :: Layer ,pol :: Polarization ,w,tol)
 
     t_kx_w(kx)  = kx*transmission_kx_w(field ,b1,b2,gap,pol,kx,w)
     t2_kx_w(u)  = t_kx_w(u*w/c0)
@@ -58,17 +54,17 @@ function transmission_w(field :: Evanescent ,b1 :: LayerOrMultiLayer, b2 :: Laye
 
     val :: Float64  = 0.0
     err :: Float64  = 0.0
-   (val,err) = hquadrature(t3_kx_w, 0.0 , 1.0 ; reltol=1e-3, abstol=0, maxevals=0)
+   (val,err) = hquadrature(t3_kx_w, 0.0 , 1.0 ; reltol=tol, abstol=0, maxevals=0)
     return val
 end
 
 
-function transmission_w(field :: Propagative ,b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, gap :: Layer ,pol :: Polarization ,w)
+function transmission_w(field :: Propagative ,b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, gap :: Layer ,pol :: Polarization ,w,tol)
     t_kx_w(kx)  = kx*transmission_kx_w(field ,b1,b2,gap,pol,kx,w)
 
     val :: Float64  = 0.0
     err :: Float64  = 0.0
-    (val,err) = hquadrature(t_kx_w, 0.0, w/c0 ; reltol=1e-5, abstol=0, maxevals=0)
+    (val,err) = hquadrature(t_kx_w, 0.0, w/c0 ; reltol=tol, abstol=0, maxevals=0)
     return val
 end
 
@@ -80,62 +76,80 @@ function heat_flux_w(field :: TotalField ,b1 :: LayerOrMultiLayer, b2 :: LayerOr
 end
 
 " Heat flux "
-function heat_flux(field :: TotalField ,b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, gap :: Layer ,pol :: Polarization , T)
-    q_w(w)  = transmission_w(field,b1,b2,gap,pol,w)
+function heat_flux(field :: TotalField ,b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, gap :: Layer ,pol :: Polarization , T; tol1=1e-8 , tol2=1e-8)
+    q_w(w)  = transmission_w(field,b1,b2,gap,pol,w,tol1)
     q2_w(u) = u*q_w(u*kb*T/ħ)/(exp(u)-1.0)
     q3_w(t) = q2_w(t/(1.0-t))/(1.0-t)^2
 
     val :: Float64  = 0.0
     err :: Float64  = 0.0
-    (val,err) = hquadrature(q3_w, 0.0 , 1.0 ; reltol=1e-5, abstol=0, maxevals=0)
+    (val,err) = hquadrature(q3_w, 0.0 , 1.0 ; reltol=tol2, abstol=0, maxevals=0)
     return val*(kb*T)^2/ħ/4.0/pi^2
+end
+
+function heat_flux_integrand(field :: TotalField ,b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, gap :: Layer ,pol :: Polarization , T; tol=1e-8)
+    q_w(w)  = transmission_w(field,b1,b2,gap,pol,w,tol)
+    q2_w(u) = u*q_w(u*kb*T/ħ)/(exp(u)-1.0)
+    q3_w(t) = q2_w(t/(1.0-t))/(1.0-t)^2
+
+    return q3_w(t)
 end
 
 
 
 function heat_flux2(field :: Propagative ,b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, gap :: Layer ,pol :: Polarization , T,tol)
-    function q_w(x)
-       u  = x[1]
-       t  = x[2]
-       w  = t*kb*T/ħ
-       kx = u*w/c0
-       tt = w/(1.0+w)
-       return kx*transmission_kx_w(field ,b1,b2,gap,pol,kx,tt/(1.0-tt))*bose_einstein(tt/(1.0-tt),T)/(1.0-tt)^2
+
+    function t_kx_w(u,v)
+       # frequency
+       w  = u*kb*T/ħ
+       # kx
+       kx = v
+       if kx <= w/c0
+           return kx*transmission_kx_w(field ,b1,b2,gap,pol,kx,w)
+       elseif kx > w/c0
+           return 0.0
+       end
     end
 
-    #q2_w(kx,u) = u*q_w(kx,u*kb*T/ħ)/(exp(u)-1.0)
-    #q3_w(kx,t) = q2_w(kx,t/(1.0-t))/(1.0-t)^2
+    be_w(u) = u/(exp(u)-1.0)
+
+    integr1(u,v) = t_kx_w(u,v)*be_w(u)
+    integr2(x)   = integr1(x[1]/(1.0-x[1]),x[2]/(1.0-x[2]))/(1.0-x[1])^2/(1.0-x[2])^2
 
     #limits
       xmin = [0.0 ; 0.0]
-      xmax = [1.0; 1.0]
+      xmax = [1.0 ; 1.0]
       val :: Float64  = 0.0
       err :: Float64  = 0.0
-      (val,err) = hcubature(q_w, xmin , xmax ; reltol=tol, abstol=0, maxevals=0)
-    return  val*kb*T/ħ/4.0/pi^2 #q_w([1.0e4;1.0e15])
+      (val,err) = hcubature(integr2, xmin , xmax ; reltol=tol, abstol=0, maxevals=0)
+    return  val*(kb*T)^2/ħ/4.0/pi^2
 end
 
 function heat_flux2(field :: Evanescent ,b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, gap :: Layer ,pol :: Polarization , T,tol)
-    function q_w(x)
-       u  = x[1]
-       t  = x[2]
-       w  = t*kb*T/ħ
-       kx = u*w/c0
-       uu = kx/(1.0+kx)
-       tt = w/(1.0+w)
-       return (w/c0+uu/(1.0-uu))*transmission_kx_w(field ,b1,b2,gap,pol,w/c0+uu/(1.0-uu),tt/(1.0-tt))*bose_einstein(tt/(1.0-tt),T)/(1.0-tt)^2/(1.0-uu)^2
-    end
+  function t_kx_w(u,v)
+     # frequency
+     w  = u*kb*T/ħ
+     # kx
+     kx = v
+     if kx >= w/c0
+         return kx*transmission_kx_w(field ,b1,b2,gap,pol,kx,w)
+     elseif kx < w/c0
+         return 0.0
+     end
+  end
 
-    #q2_w(kx,u) = u*q_w(kx,u*kb*T/ħ)/(exp(u)-1.0)
-    #q3_w(kx,t) = q2_w(kx,t/(1.0-t))/(1.0-t)^2
+  be_w(u) = u/(exp(u)-1.0)
 
-    #limits
-      xmin = [0.0 ; 0.0]
-      xmax = [1.0; 1.0]
-      val :: Float64  = 0.0
-      err :: Float64  = 0.0
-      (val,err) = hcubature(q_w, xmin , xmax ; reltol=tol, abstol=0, maxevals=0)
-    return  val, err #q_w([1.0e4;1.0e15]) *(kb*T)^2/ħ/4.0/pi^2
+  integr1(u,v) = t_kx_w(u,v)*be_w(u)
+  integr2(x)   = integr1(x[1]/(1.0-x[1]),x[1]/(1.0-x[1])+x[2]/(1.0-x[2]))/(1.0-x[1])^2/(1.0-x[2])^2
+
+  #limits
+    xmin = [0.0 ; 0.0]
+    xmax = [1.0 ; 1.0]
+    val :: Float64  = 0.0
+    err :: Float64  = 0.0
+    (val,err) = hcubature(integr2, xmin , xmax ; reltol=tol, abstol=0, maxevals=0)
+  return  val*(kb*T)^2/ħ/4.0/pi^2
 end
 
 
@@ -150,6 +164,11 @@ end
 function heat_transfer(field :: TotalField ,b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, gap :: Layer ,pol :: Polarization, T1,T2)
     return heat_flux(field,b1,b2,gap,pol,T2) - heat_flux(field,b1,b2,gap,pol,T1)
 end
+
+function heat_transfer2(field :: TotalField ,b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, gap :: Layer ,pol :: Polarization, T1,T2)
+    return heat_flux(field,b1,b2,gap,pol,T2) - heat_flux(field,b1,b2,gap,pol,T1)
+end
+
 
 "Total net heat transfer"
 function total_heat_transfer(b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, gap :: Layer, T1,T2)
