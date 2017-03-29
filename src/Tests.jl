@@ -1,5 +1,5 @@
 
-using Tmp
+using RadiativeHeat
 using Plots
 
 function test1()
@@ -304,7 +304,7 @@ function test8(T1,T2,dist,dim)
 
     end
 
-    " compute total emissivity for two bulk media and compare with classical formula for far-field transfer"
+ " compute total emissivity for two bulk media and compare with classical formula for far-field transfer"
         function test17(T1,T2)
           b1 = Tmp.Bulk(Tmp.Cst(),Tmp.Sic())
           em_ml = Tmp.emissivity(b1, T1)
@@ -318,3 +318,14 @@ function test8(T1,T2,dist,dim)
           println("heat flux = ",hf ,"W/m^2")
 
         end
+
+" heat_flux with anonymous function method"
+    function test18(tol)
+        b1  = Layer(Al())
+        gap = Layer(Cst(),1.0e-8)
+        #@time heat_flux_integrand(Evanescent(),b1,b1,gap,te(),300.0,tol)
+        @time q1 = heat_flux(Evanescent(),b1,b1,gap,te(),300.0; tol1=1e-8 , tol2=1e-8)
+        println(q1)
+        @time q2 = heat_flux2(Evanescent(),b1,b1,gap,te(),300.0, 1e-5)
+        println(q2)
+    end
