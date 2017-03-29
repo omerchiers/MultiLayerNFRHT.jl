@@ -77,22 +77,19 @@ end
 
 " Heat flux "
 function heat_flux(field :: TotalField ,b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, gap :: Layer ,pol :: Polarization , T; tol1=1e-8 , tol2=1e-8)
-    q_w(w)  = transmission_w(field,b1,b2,gap,pol,w,tol1)
-    q2_w(u) = u*q_w(u*kb*T/ħ)/(exp(u)-1.0)
-    q3_w(t) = q2_w(t/(1.0-t))/(1.0-t)^2
-
+    q_w = heat_flux_integrand(field ,b1 , b2 , gap  ,pol , T , tol1)
     val :: Float64  = 0.0
     err :: Float64  = 0.0
-    (val,err) = hquadrature(q3_w, 0.0 , 1.0 ; reltol=tol2, abstol=0, maxevals=0)
+    (val,err) = hquadrature(q_w, 0.0 , 1.0 ; reltol=tol2, abstol=0, maxevals=0)
     return val*(kb*T)^2/ħ/4.0/pi^2
 end
 
-function heat_flux_integrand(field :: TotalField ,b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, gap :: Layer ,pol :: Polarization , T; tol=1e-8)
+function heat_flux_integrand(field :: TotalField ,b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, gap :: Layer ,pol :: Polarization , T,tol)
     q_w(w)  = transmission_w(field,b1,b2,gap,pol,w,tol)
     q2_w(u) = u*q_w(u*kb*T/ħ)/(exp(u)-1.0)
     q3_w(t) = q2_w(t/(1.0-t))/(1.0-t)^2
 
-    return q3_w(t)
+    return q3_w
 end
 
 
