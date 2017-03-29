@@ -1,7 +1,7 @@
 # This file containes all the optical properties.
 # Permitivities are given in the convention : eps_real - i*eps_im
 
-export convert_prop, permittivity, epsi, refr, Drude, Lorentz, Cbn, Sic, Si, Al, Au
+export convert_prop, permittivity, epsi, refr, Drude, Lorentz, Cbn, Sic, Si, Al, Au,Cst
 abstract OptProp
 
 # Generic
