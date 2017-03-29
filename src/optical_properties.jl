@@ -23,7 +23,7 @@ immutable Au <: OptProp end
 
 # Constant permittivity
 immutable Cst <: OptProp
-    val   :: Complex128
+    val :: Complex128
 end
 Cst() = Cst(1.0+im*0.0)
 
