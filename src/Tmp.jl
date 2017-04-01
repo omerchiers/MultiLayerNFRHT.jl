@@ -95,3 +95,59 @@ function heat_transfer(field :: TotalField ,b1 :: MultiLayer, b2 :: MultiLayer, 
     return val*(kb*T1)/ħ
 
 end
+
+
+function heat_flux2(field :: Propagative ,b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, gap :: Layer ,pol :: Polarization , T,tol)
+
+    function t_kx_w(u,v)
+       # frequency
+       w  = u*kb*T/ħ
+       # kx
+       kx = v
+       if kx <= w/c0
+           return kx*transmission_kx_w(field ,b1,b2,gap,pol,kx,w)
+       elseif kx > w/c0
+           return 0.0
+       end
+    end
+
+    be_w(u) = u/(exp(u)-1.0)
+
+    integr1(u,v) = t_kx_w(u,v)*be_w(u)
+    integr2(x)   = integr1(x[1]/(1.0-x[1]),x[2]/(1.0-x[2]))/(1.0-x[1])^2/(1.0-x[2])^2
+
+    #limits
+      xmin = [0.0 ; 0.0]
+      xmax = [1.0 ; 1.0]
+      val :: Float64  = 0.0
+      err :: Float64  = 0.0
+      (val,err) = hcubature(integr2, xmin , xmax ; reltol=tol, abstol=0, maxevals=0)
+    return  val*(kb*T)^2/ħ/4.0/pi^2
+end
+
+function heat_flux2(field :: Evanescent ,b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, gap :: Layer ,pol :: Polarization , T,tol)
+  function t_kx_w(u,v)
+     # frequency
+     w  = u*kb*T/ħ
+     # kx
+     kx = v
+     if kx >= w/c0
+         return kx*transmission_kx_w(field ,b1,b2,gap,pol,kx,w)
+     elseif kx < w/c0
+         return 0.0
+     end
+  end
+
+  be_w(u) = u/(exp(u)-1.0)
+
+  integr1(u,v) = t_kx_w(u,v)*be_w(u)
+  integr2(x)   = integr1(x[1]/(1.0-x[1]),x[1]/(1.0-x[1])+x[2]/(1.0-x[2]))/(1.0-x[1])^2/(1.0-x[2])^2
+
+  #limits
+    xmin = [0.0 ; 0.0]
+    xmax = [1.0 ; 1.0]
+    val :: Float64  = 0.0
+    err :: Float64  = 0.0
+    (val,err) = hcubature(integr2, xmin , xmax ; reltol=tol, abstol=0, maxevals=0)
+  return  val*(kb*T)^2/ħ/4.0/pi^2
+end

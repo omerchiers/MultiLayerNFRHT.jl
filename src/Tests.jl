@@ -329,3 +329,31 @@ function test8(T1,T2,dist,dim)
         @time q2 = heat_flux2(Evanescent(),b1,b1,gap,te(),300.0, 1e-5)
         println(q2)
     end
+
+" heat_transfer with anonymous function method"
+    function test19(tol)
+        b1  = Layer(Al())
+        gap = Layer(Cst(),1.0e-8)
+        #@time heat_flux_integrand(Evanescent(),b1,b1,gap,te(),300.0,tol)
+        @time q1 = heat_transfer(Evanescent(),b1,b1,gap,te(),400.0 , 300.0  ; tol1=tol,tol2=tol)
+        println("heat_transfer  =",q1)
+        @time q2 = heat_transfer2(Evanescent(),b1,b1,gap,te(),400.0 , 300.0 ; tol1=tol,tol2=tol)
+        println("heat_transfer2 =",q2)
+    end
+
+ " total heat_transfer as a function of separation distance"
+        function test20(tl1,tl2)
+            b1  = Layer(Al())
+            dist = logspace(-8,-4,40)
+            q = zeros(Float64,40,5)
+            fid = open("q_vs_dist.dat", "a")
+            #@time heat_flux_integrand(Evanescent(),b1,b1,gap,te(),300.0,tol)
+            for i=40:40
+              gap = Layer(Cst(),dist[i])
+              @time q[i,1:5] = total_heat_transfer(b1,b1,gap, 400.0 , 300.0  , tl1,tl2)
+              println("distance in m  =",dist[i])
+              println("heat_transfer  =",q[i,1:5])
+              writedlm(fid,[dist[i], q[i,1:5]'])
+            end
+            close(fid)
+        end
