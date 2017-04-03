@@ -5,15 +5,15 @@ using Plots
 function test1()
     wv = 1.0e15
     ang = collect(linspace(0.0,pi*0.5,1000))
-    b = Tmp.Bulk(Tmp.Cst(),Tmp.Cst(5.0+im*0.0))
-    eps1 = Tmp.permittivity(b.ep1,wv)
-    kx = Tmp.compute_kx.(ang,[eps1],[wv])
+    b = Bulk(Cst(),Cst(5.0+im*0.0))
+    eps1 = permittivity(b.ep1,wv)
+    kx = compute_kx.(ang,[eps1],[wv])
     RTE=zeros(Float64,1000)
     RTM=zeros(Float64,1000)
 
     for i=1:1000
-        (rte,tte) = Tmp.rt(b, Tmp.te(), kx[i] ,wv)
-        (rtm,ttm) = Tmp.rt(b, Tmp.tm(), kx[i] ,wv)
+        (rte,tte) = rt(b, te(), kx[i] ,wv)
+        (rtm,ttm) = rt(b, tm(), kx[i] ,wv)
          RTE[i] = abs(rte)^2
          RTM[i] = abs(rtm)^2
     end
@@ -357,3 +357,157 @@ function test8(T1,T2,dist,dim)
             end
             close(fid)
         end
+
+  " heat_transfer_w"
+  function test21(tol)
+     wv  = collect(logspace(13,15,1000))
+     b1  = Layer(Al(),0.0)
+     gap = Layer(Cst(),1.0e-4)
+     #@time heat_flux_integrand(Evanescent(),b1,b1,gap,te(),300.0,tol)
+     q = zeros(Float64,1000)
+     qp = zeros(Float64,1000)
+     for i=1:1000
+        for f in [ Evanescent(), Propagative()]
+            for p in [te(),tm()]
+                q[i] += heat_transfer_w(f ,b1 ,b1, gap ,p ,wv[i], 400.0,300.0;toler=tol)
+             end
+        end
+        qp[i] = planck(wv[i],400.0)-planck(wv[i],300.0)
+      end
+      qtot=trapz(wv,q)
+      println(qtot)
+      plot(wv,q,xaxis=:log10,yaxis=:log10)
+      plot!(wv,qp,xaxis=:log10,yaxis=:log10)
+
+  end
+
+  " transmission_w"
+  function test22(tol)
+     wv  = collect(linspace(1e13,1e15,1000))
+     b1  = Layer(Cst(1.00001+im*0.001))
+     gap = Layer(Cst(),1.0e-2)
+     #@time heat_flux_integrand(Evanescent(),b1,b1,gap,te(),300.0,tol)
+     q = zeros(Float64,1000)
+     for i=1:1000
+        for f in [Evanescent(), Propagative()]
+            for p in [te(),tm()]
+                q[i] += transmission_w(f ,b1 ,b1, gap ,p ,wv[i],tol)
+             end
+        end
+      end
+      println(q[1000])
+      plot(wv,q,xaxis=:log10,yaxis=:log10)
+    #  plot!(wv,wv.^2/pi/c0,xaxis=:log10,yaxis=:log10)
+
+  end
+
+  " total flux black body sigma*T^4 "
+  function test23(T)
+     wmin = wien(T)*0.2
+     wmax = wien(T)*20.0
+     println("wmin =",wmin)
+     println("wmax =",wmax)
+     wv  = collect(linspace(wmin,wmax,1000))
+
+     qp  = zeros(Float64,1000)
+     qbe = zeros(Float64,1000)
+
+     for i=1:1000
+           qbe[i] = bose_einstein(wv[i],T)*wv[i]^2/c0^2/4.0/pi^2
+           qp[i]  = planck(wv[i],T)
+     end
+      qtotbe = trapz(wv,qbe)
+      qtotp  = trapz(wv,qp)
+      println(qtotbe/sigma/T^4)
+      println(qtotp/sigma/T^4)
+      plot(wv,qp,xaxis=:log10,yaxis=:log10)
+      plot!(wv,qbe,xaxis=:log10,yaxis=:log10)
+
+  end
+
+  " Check if transmission_kx_w gives 2 for a black body"
+  function test24()
+     wv  = collect(linspace(1e13,1e15,1000))
+     b1  = Layer(Cst(1.00001+im*0.001))
+     gap = Layer(Cst(),1.0e-5)
+     #@time heat_flux_integrand(Evanescent(),b1,b1,gap,te(),300.0,tol)
+     q = zeros(Float64,1000)
+     for i=1:1000
+        for f in [Evanescent(), Propagative()]
+            for p in [te(),tm()]
+                q[i] += transmission_kx_w(f,b1,b1,gap,p,1e4,wv[i])
+             end
+        end
+      end
+      println(q[1000])
+      plot(wv,q,xaxis=:log10)
+    #  plot!(wv,wv.^2/pi/c0,xaxis=:log10,yaxis=:log10)
+
+  end
+
+  " Check if transmission_w gives (w/c0)^2 for black body for propagative component"
+  function test25(tol)
+     wv  = collect(linspace(1e13,1e15,1000))
+     b1  = Layer(Cst(1.00001+im*0.001))
+     gap = Layer(Cst(),1.0e-8)
+     #@time heat_flux_integrand(Evanescent(),b1,b1,gap,te(),300.0,tol)
+     q = zeros(Float64,1000)
+     for i=1:1000
+        for f in [Evanescent()]
+            for p in [te(),tm()]
+                q[i] += transmission_w(f ,b1 ,b1, gap ,p ,wv[i],tol)
+             end
+        end
+      end
+      println(q[1000])
+      plot(wv,q./(wv/c0).^2,xaxis=:log10)
+    #  plot!(wv,wv.^2/pi/c0,xaxis=:log10,yaxis=:log10)
+
+  end
+
+  " Check exponential factor in evanescent contribution"
+  function test26(kx,w)
+      dist  = collect(logspace(-9,-6,100))
+      k2z = compute_kz(kx,permittivity(Cst(),w),w) :: Complex{Float64}
+      #@time heat_flux_integrand(Evanescent(),b1,b1,gap,te(),300.0,tol)
+      exp_val = zeros(Float64,100)
+      fac_val = zeros(Float64,100)
+
+      b1  = Layer(Al())
+      (r_21,t)  = rt([Layer(Cst());b1],te(),kx,w)
+      r_23 = r_21
+      for i=1:100
+          gap = Layer(Cst(),dist[i])
+          exp_val[i] = exp(-2.0*imag(k2z)*gap.thickness)
+          exp_val2   = exp(2.0*im*k2z*gap.thickness)            :: Complex{Float64}
+          fac_val[i] = imag(r_21)*imag(r_23)/abs(1.0-r_21*r_23*exp_val2)^2
+
+      end
+      #scatter(dist,exp_val,xaxis=:log10)
+      plot(dist,exp_val.*fac_val,xaxis=:log10)
+    #  plot!(wv,wv.^2/pi/c0,xaxis=:log10,yaxis=:log10)
+  end
+
+  " total heat_transfer as a function of separation distance with integration version"
+  function test27(tol)
+     wv  = collect(linspace(1e13,1e15,1000))
+     dist= collect(logspace(-8,-4,100))
+     b1  = Layer(Al(),0.0)
+     #@time heat_flux_integrand(Evanescent(),b1,b1,gap,te(),300.0,tol)
+     qtot = zeros(Float64,100)
+     for i=1:100
+        q = zeros(Float64,1000)
+        gap = Layer(Cst(),dist[i])
+        for f in [ Evanescent(), Propagative()]
+            for p in [te(),tm()]
+                q += heat_transfer_w.([f] ,[b1] ,[b1], [gap] ,[p] ,wv, [400.0],[300.0];toler=tol)
+             end
+        end
+      qtot[i]=trapz(wv,q)
+      println("distance =",dist[i])
+      println("qtot =",qtot[i])
+      end
+
+      plot(wv,qtot,xaxis=:log10,yaxis=:log10)
+
+  end
