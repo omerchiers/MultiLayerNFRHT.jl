@@ -29,12 +29,12 @@ typealias MultiLayer Vector{Layer}
 
 
 function compute_kz(kx,eps,w)
-    eps = conj(eps)
+
     sqrt(eps*(w/c0)^2 - kx*kx)
 end
 
 function compute_kx(theta_0,eps,w)
-    eps=conj(eps)
+
     sqrt(eps)*sin(theta_0)*w/c0
 end
 
@@ -47,8 +47,6 @@ end
 # Fresnel coefficient of a semi-infinite medium : perpendicular
 function rt(pol :: te, eps1,eps2, k0z,k2z,w)
   # k0z = incident wavevector from medium 1
-    eps1 = conj(eps1)
-    eps2 = conj(eps2)
 
     r = (k0z - k2z)/(k0z + k2z)
     t = (2.0+im*0.0)*k0z/(k0z + k2z)
@@ -58,8 +56,6 @@ end
 # Fresnel coefficient of a semi-infinite medium : parallel
 function rt(pol :: tm, eps1,eps2, k0z,k2z,w)
   # k0z = incident wavevector from medium 1
-    eps1 = conj(eps1)
-    eps2 = conj(eps2)
 
     r = (eps2*k0z-eps1*k2z)/(eps2*k0z+eps1*k2z)
     t = (2.0+im*0.0)*sqrt(eps2)*sqrt(eps1)*k0z/(eps2*k0z+eps1*k2z)
@@ -103,8 +99,8 @@ function abeles_matrix!(ab_matrix,struct :: MultiLayer, pol :: Polarization, kx,
             r,t = rt(pol, eps1,eps2, k0z,k2z,w)
 
             interface_matrix  = [1.0+im*0.0  r ; r  1.0+im*0.0 ]./t
-            layer_matrix      = [exp(im*struct[i].thickness*k2z)  0.0+0.0*im ;
-                                0.0+0.0*im  exp(-im*struct[i].thickness*k2z) ]
+            layer_matrix      = [exp(-im*struct[i].thickness*k2z)  0.0+0.0*im ;
+                                0.0+0.0*im  exp(im*struct[i].thickness*k2z) ]
             ab_matrix  = ab_matrix*(interface_matrix*layer_matrix)
         end
     return ab_matrix
