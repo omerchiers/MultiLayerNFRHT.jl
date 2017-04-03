@@ -7,6 +7,7 @@ LayerOrMultiLayer = Union{Layer,MultiLayer}
 
 # Factors
 function bose_einstein(w,T)
+    u = w*ħ/kb/T
     if T==0
         return 0.0
     end
@@ -14,21 +15,23 @@ function bose_einstein(w,T)
         return kb*T
     end
 
-    return ħ*w/(exp(ħ*w/kb/T)-1.0)
+    return u*kb*T/(exp(u)-1.0)
 end
 
+"""
+Planck's Distribution using the definition :
+``q_{\omega}^{\text{BB}} =  \Theta(\omega,T) \frac{k_0^2}{4\pi^2}  ``
+"""
 function planck(w,T)
-    u = w*ħ/kb/T
-    return  u^3/(exp(u)-1.0)*kb^4*T^4/ħ^3/c0^2/(2.0*pi)^2
+    return  bose_einstein(w,T)*(w/c0)^2/(2.0*pi)^2
 end
 
-# Wien frequency : return the frequency for which Planck distribution is maximum
+" Wien frequency : return the frequency for which Planck distribution is maximum"
 function wien(T)
     return   2.8214393721220787*kb*T/ħ
 end
 
 function emissivity_kx_w(struct :: BulkOrMultiLayer, kx, w)
-# Monocromatic emissivity
 
     (rte,t)=rt(struct, te(),kx,w)
     (rtm,t)=rt(struct, tm(),kx,w)
@@ -40,7 +43,7 @@ function emissivity_kx_w(struct :: BulkOrMultiLayer, kx, w)
 
 end
 
-
+" Monocromatic emissivity"
 function emissivity_w(struct :: BulkOrMultiLayer, w)
     e_kx(kx) = kx*emissivity_kx_w(struct ,kx, w)
 
