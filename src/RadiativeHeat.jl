@@ -4,7 +4,8 @@ using Plots
 
 # export functions
 export bose_einstein,wien,farfield_transfer,
-       transmission_kx_w,transmission_w,compute_kz,compute_kx,
+       transmission_kx_w,transmission_w,
+       compute_kz,compute_kx,
        heat_flux,heat_flux2,heat_flux_w,heat_flux_integrand,
        heat_flux_integrand,heat_transfer2,
        heat_transfer,heat_transfer_w,
