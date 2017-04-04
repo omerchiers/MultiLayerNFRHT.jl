@@ -52,14 +52,13 @@ function transmission_w(field :: Evanescent ,b1 :: LayerOrMultiLayer, b2 :: Laye
 
     t_kx_w(kx)  = kx*transmission_kx_w(field ,b1,b2,gap,pol,kx,w)
     t2_kx_w(u)  = t_kx_w(u*w/c0)
-    #t3_kx_w(v)  = t_kx_w(1.0 + v/(1.0-v))/(1.0-v)^2
+    t3_kx_w(v)  = t2_kx_w(1.0 + v/(1.0-v))/(1.0-v)^2
 
     val :: Float64  = 0.0
     err :: Float64  = 0.0
-   (val,err) = hquadrature(t2_kx_w, 1.0 , 1e3 ; reltol=tol, abstol=0, maxevals=0)
+   (val,err) = hquadrature(t3_kx_w, 0.0 , 1.0 ; reltol=tol, abstol=0, maxevals=0)
     return val*(w/c0)
 end
-
 
 function transmission_w(field :: Propagative ,b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, gap :: Layer ,pol :: Polarization ,w,tol)
     t_kx_w(kx)  = kx*transmission_kx_w(field ,b1,b2,gap,pol,kx,w)
