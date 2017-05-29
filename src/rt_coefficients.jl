@@ -1,6 +1,6 @@
 # This file defines the reflection and transmission coefficients of a multilayer
 
-using StaticArrays
+#using StaticArrays
 
 abstract Polarization
 immutable te <: Polarization end
@@ -79,17 +79,17 @@ end
 # Fresnel coefficient of a multilayered semi-infinite medium : as a function of incidence angle and frequency
 
 function rt(struct :: MultiLayer, pol :: Polarization, kx ,w)
-    ab_matrix  =[1.0+0.0*im  0.0+0.0*im ;
+      S   =[1.0+0.0*im  0.0+0.0*im ;
               0.0+0.0*im  1.0+0.0*im ]
     if real(kx)<w/c0 || real(kx)>w/c0
-        ab_matrix = abeles_matrix!(ab_matrix,struct,pol,kx,w)
-        return ab_matrix[2,1]/ab_matrix[1,1], (1.0+im*0.0)/ab_matrix[2,1]
+        S = scattering_matrix!(S,struct,pol,kx,w)
+        return S[2,1], S[1,1]
     else
         return 1.0+0.0*im, 0.0+0.0*im
     end
 end
 
-function abeles_matrix!(ab_matrix,struct :: MultiLayer, pol :: Polarization, kx, w)
+function scattering_matrix!(S,struct :: MultiLayer, pol :: Polarization, kx, w)
 
         for i=2:length(struct)
             eps1 :: Complex128 = permittivity(struct[i-1].material,w)
@@ -98,11 +98,11 @@ function abeles_matrix!(ab_matrix,struct :: MultiLayer, pol :: Polarization, kx,
             k2z   = compute_kz(kx,eps2,w)
             r,t = rt(pol, eps1,eps2, k0z,k2z,w)
 
-            interface_matrix  = [1.0+im*0.0  r ; r  1.0+im*0.0 ]./t
-            layer_matrix      = [exp(-im*struct[i].thickness*k2z)  0.0+0.0*im ;
-                                0.0+0.0*im  exp(im*struct[i].thickness*k2z) ]
-            ab_matrix  = ab_matrix*(interface_matrix*layer_matrix)
+            S[1,1] =(S[1,1]*t*exp(im*struct[i-1].thickness*k0z))/(1.0+0.0*im - S[1,2]*r*exp(2.0*im*struct[i-1].thickness*k0z))
+            S[1,2] =(S[1,2]*exp(2.0*im*struct[i-1].thickness*k0z)-r)/(1.0+0.0*im - S[1,2]*r*exp(2.0*im*struct[i-1].thickness*k0z))
+            S[2,1] =(S[1,1]*S[2,2]*r*exp(im*struct[i-1].thickness*k0z))/t+S[2,1]
+            S[2,2] =(S[2,2]*exp(im*struct[i-1].thickness*k0z)*(r*S[1,2] + 1.0+0.0*im))/t
         end
-    return ab_matrix
+    return S
 
 end
