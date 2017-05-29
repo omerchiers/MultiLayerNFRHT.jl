@@ -12,8 +12,8 @@ end
 function transmission_kx_w(:: Evanescent ,b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, gap :: Layer ,pol :: Polarization , kx ,w)
 
     gap2 = Layer(gap.material,0.0)
-    b1   = prepend!([b1],[gap2])
-    b2   = prepend!([b2],[gap2])
+    b1   = prepend!([b1;],[gap2])
+    b2   = prepend!([b2;],[gap2])
 
     (r_21,t)  = rt(b1,pol,kx,w) :: Tuple{Complex{Float64},Complex{Float64}}
     (r_23,t)  = rt(b2,pol,kx,w) :: Tuple{Complex{Float64},Complex{Float64}}
@@ -22,7 +22,7 @@ function transmission_kx_w(:: Evanescent ,b1 :: LayerOrMultiLayer, b2 :: LayerOr
     exp_val1 = exp(-2.0*imag(k2z)*gap.thickness)         :: Float64
     exp_val2 = exp(2.0*im*k2z*gap.thickness)            :: Complex{Float64}
 
-    return 4.0*exp_val1*imag(r_21)*imag(r_23)/abs(1.0-r_21*r_23*exp_val2)^2
+    return 4.0*exp_val1*imag(r_21)*imag(r_23)/abs(1.0-r_21*r_23*exp_val2)^2,4.0*exp_val1*imag(r_21)*imag(r_23),abs(1.0-r_21*r_23*exp_val2)^2
 
 end
 
@@ -31,8 +31,8 @@ end
 function transmission_kx_w(:: Propagative, b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, gap :: Layer ,pol :: Polarization , kx ,w)
 
     gap2 = Layer(gap.material,0.0)
-    b1 = prepend!([b1],[gap2])
-    b2 = prepend!([b2],[gap2])
+    b1 = prepend!([b1;],[gap2])
+    b2 = prepend!([b2;],[gap2])
 
     (r_21,t) = rt(b1,pol,kx,w) :: Tuple{Complex{Float64},Complex{Float64}}
     (r_23,t) = rt(b2,pol,kx,w) :: Tuple{Complex{Float64},Complex{Float64}}
@@ -127,16 +127,50 @@ end
 
 
 "Total net heat transfer"
-function total_heat_transfer(b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, gap :: Layer, T1,T2;tl1=1e-1,tl2=1e-1)
-    q_evan_ev_te = heat_transfer(Evanescent(),b1,b2,gap,te(),T1,T2; tol1=tl1,tol2=tl2)
-    q_evan_ev_tm = heat_transfer(Evanescent(),b1,b2,gap,tm(),T1,T2; tol1=tl1,tol2=tl2)
-
-    q_prop_ev_te = heat_transfer(Propagative(),b1,b2,gap,te(),T1,T2; tol1=tl1,tol2=tl2)
-    q_prop_ev_tm = heat_transfer(Propagative(),b1,b2,gap,tm(),T1,T2; tol1=tl1,tol2=tl2)
-
-    q_tot = q_evan_ev_te+q_evan_ev_tm + q_prop_ev_te+q_prop_ev_tm
-    q = [q_tot  q_evan_ev_te  q_evan_ev_tm  q_prop_ev_te q_prop_ev_tm]
+function total_heat_transfer(b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, gap :: Layer, T1,T2;tolkx=1e-6,tolw=1e-6)
+    valt = 0.0
+    cnt  = 0
+    q    = zeros(Float64,5)
+    for f in [ Evanescent(), Propagative()]
+        for p in [te(),tm()]
+            cnt  += 1
+            ht(w) = heat_transfer_w(f ,b1 ,b2, gap ,p ,w, T1,T2;toler=tolkx)
+            ht2(u) = ht(u*kb/ħ)
+            ht3(t) = ht2(t/(1.0-t))/(1.0-t)^2
+            (val,err) = hquadrature(ht3, 0.0 , 1.0 ; reltol=tolw, abstol=0, maxevals=0)
+            valt  += val
+            q[cnt] = val*kb/ħ
+         end
+    end
+    q[5]=valt*kb/ħ
 
     return q
-
 end
+
+function total_heat_transfer(b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, gap :: Layer, T1,T2,w1,w2;tolkx=1e-6,tolw=1e-6)
+    valt = 0.0
+    cnt  = 0
+    q    = zeros(Float64,5)
+    u1 = w1*ħ/kb
+    u2 = w2*ħ/kb
+    for f in [ Evanescent(), Propagative()]
+        for p in [te(),tm()]
+            cnt  += 1
+            ht(w) = heat_transfer_w(f ,b1 ,b2, gap ,p ,w, T1,T2;toler=tolkx)
+            ht2(u) = ht(u*kb/ħ)
+            (val,err) = hquadrature(ht2, u1 , u2 ; reltol=tolw, abstol=0, maxevals=0)
+            valt  += val
+            q[cnt] = val*kb/ħ
+         end
+    end
+    q[5]=valt*kb/ħ
+
+    return q
+end
+
+# total_heat_transfer(spectrum :: FrequencyRange,
+#                     b1 :: LayerOrMultiLayer,
+#                     b2 :: LayerOrMultiLayer,
+#                     gap :: Layer,
+#                     T1,T2;tolkx=1e-6,tolw=1e-6)
+# = total_heat_transfer(b1 ,b2, gap ,T1,T2,0.1*wien(min(T1,T2)),10.0*wien(max(T1,T2));tolkx=1e-6,tolw=1e-6)
