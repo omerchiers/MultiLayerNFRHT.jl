@@ -1,6 +1,6 @@
 
 using RadiativeHeat
-using Plots
+using Plots, Cubature
 
 function test1()
     wv = 1.0e15
@@ -228,7 +228,7 @@ function test8(T1,T2,dist,dim)
                output_vec = [dist[i] q[i,:]']
                write(f, "$(output_vec) \r\n")
                close(f)
-          end
+           end
 
       plot(dist,q)
       xaxis!(:log10)
@@ -445,46 +445,57 @@ function test8(T1,T2,dist,dim)
 
   end
 
-  " Check if transmission_w gives (w/c0)^2 for black body for propagative component"
-  function test25(tol)
+  " Check convergence of evanescent part"
+
+  function test25(tol,dist)
      wv  = collect(linspace(1e13,1e15,1000))
-     b1  = Layer(Cst(1.00001+im*0.001))
-     gap = Layer(Cst(),1.0e-8)
+     b1  = Layer(Al())
+     gap = Layer(Cst(),dist)
      #@time heat_flux_integrand(Evanescent(),b1,b1,gap,te(),300.0,tol)
      q = zeros(Float64,1000)
+     q2 = zeros(Float64,1000)
+
      for i=1:1000
         for f in [Evanescent()]
             for p in [te(),tm()]
                 q[i] += transmission_w(f ,b1 ,b1, gap ,p ,wv[i],tol)
+                q2[i] += transmission_w2(f ,b1 ,b1, gap ,p ,wv[i],tol)
              end
         end
       end
-      println(q[1000])
-      plot(wv,q./(wv/c0).^2,xaxis=:log10)
+      println("q = ",q[1000])
+      println("q2 = ",q2[1000])
+      plot(wv,q,xaxis=:log10,yaxis=:log10)
+      plot!(wv,q2,xaxis=:log10,yaxis=:log10)
+
     #  plot!(wv,wv.^2/pi/c0,xaxis=:log10,yaxis=:log10)
 
   end
 
-  " Check exponential factor in evanescent contribution"
-  function test26(kx,w)
-      dist  = collect(logspace(-9,-6,100))
-      k2z = compute_kz(kx,permittivity(Cst(),w),w) :: Complex{Float64}
-      #@time heat_flux_integrand(Evanescent(),b1,b1,gap,te(),300.0,tol)
-      exp_val = zeros(Float64,100)
-      fac_val = zeros(Float64,100)
 
+  " Check exponential factor in evanescent contribution"
+  function test26(dist,w)
+      #dist  = collect(logspace(-9,-6,100))
+      kxv   = collect(linspace(w/c0,1e4*w/c0,1000))
+
+      #@time heat_flux_integrand(Evanescent(),b1,b1,gap,te(),300.0,tol)
+      exp_val = zeros(Float64,1000)
+      fac_val = zeros(Float64,1000)
       b1  = Layer(Al())
-      (r_21,t)  = rt([Layer(Cst());b1],te(),kx,w)
-      r_23 = r_21
-      for i=1:100
-          gap = Layer(Cst(),dist[i])
+      gap = Layer(Cst(),dist)
+      for i=1:1000
+          (r_21,t)= rt([Layer(Cst());b1],te(),kxv[i],w)
+          r_23    = r_21
+          k2z     = compute_kz(kxv[i],permittivity(Cst(),w),w)
           exp_val[i] = exp(-2.0*imag(k2z)*gap.thickness)
           exp_val2   = exp(2.0*im*k2z*gap.thickness)            :: Complex{Float64}
           fac_val[i] = imag(r_21)*imag(r_23)/abs(1.0-r_21*r_23*exp_val2)^2
-
       end
       #scatter(dist,exp_val,xaxis=:log10)
-      plot(dist,exp_val.*fac_val,xaxis=:log10)
+
+      plot(kxv,exp_val.*fac_val,yaxis=:log10)
+      plot!(kxv,exp_val.*fac_val.*kxv,yaxis=:log10)
+      plot!(kxv,1./kxv.^2,yaxis=:log10)
     #  plot!(wv,wv.^2/pi/c0,xaxis=:log10,yaxis=:log10)
   end
 
@@ -493,21 +504,83 @@ function test8(T1,T2,dist,dim)
      wv  = collect(linspace(1e13,1e15,1000))
      dist= collect(logspace(-8,-4,100))
      b1  = Layer(Al(),0.0)
+     b2  = [Layer(Sic(),600.0e-9) ; Layer(Al(),0.0)]
      #@time heat_flux_integrand(Evanescent(),b1,b1,gap,te(),300.0,tol)
      qtot = zeros(Float64,100)
      for i=1:100
         q = zeros(Float64,1000)
         gap = Layer(Cst(),dist[i])
-        for f in [ Evanescent(), Propagative()]
-            for p in [te(),tm()]
-                q += heat_transfer_w.([f] ,[b1] ,[b1], [gap] ,[p] ,wv, [400.0],[300.0];toler=tol)
-             end
+        for j=1:1000
+          for f in [ Evanescent(), Propagative()]
+              for p in [te(),tm()]
+                  q[j] += heat_transfer_w(f ,b1 ,b2, gap ,p ,wv[j], 400.0, 300.0 ;toler=tol)
+               end
+          end
         end
       qtot[i]=trapz(wv,q)
       println("distance =",dist[i])
       println("qtot =",qtot[i])
       end
 
-      plot(wv,qtot,xaxis=:log10,yaxis=:log10)
+      plot(dist,qtot,xaxis=:log10,yaxis=:log10)
+
+  end
+
+  " test for integration over frequency from 0 to infinity"
+  function test28(tolw,tolkx)
+     dist= collect(logspace(-8,-4,100))
+     b1  = Layer(Al(),0.0)
+     #@time heat_flux_integrand(Evanescent(),b1,b1,gap,te(),300.0,tol)
+     qtot = zeros(Float64,100)
+     for i=1:100
+        valt = 0.0
+        gap = Layer(Cst(),dist[i])
+        for f in [ Evanescent(), Propagative()]
+            for p in [te(),tm()]
+                ht(w) = heat_transfer_w(f ,b1 ,b1, gap ,p ,w, 400.0,300.0;toler=tolkx)
+                ht2(u) = ht(u*kb/ħ)
+                ht3(t) = ht2(t/(1.0-t))/(1.0-t)^2
+                (val,err) = hquadrature(ht3, 0.0 , 1.0 ; reltol=tolw, abstol=0, maxevals=0)
+                valt +=val
+             end
+        end
+      qtot[i]=valt*kb/ħ
+      println("distance =",dist[i])
+      println("qtot =",qtot[i])
+      end
+
+      plot(dist,qtot,xaxis=:log10,yaxis=:log10)
+
+  end
+
+
+  " total heat_transfer as a function of separation distance with trapezium integration version between Al-Diel"
+  function test29(tol)
+     file_name = "data/heat_transfer/Al-SiC/Al_SiC_q_vs_dist.dat"
+     fn = open(file_name, "a")
+     wv  = collect(linspace(1e12,1e15,2000))
+     dist= collect(logspace(-8,-4,100))
+     b1  = Layer(Al(),0.0)
+     b2  = Layer(Al(),0.0)
+     #@time heat_flux_integrand(Evanescent(),b1,b1,gap,te(),300.0,tol)
+     qtot = zeros(Float64,100)
+     for i=1:length(dist)
+        q = zeros(Float64,length(wv))
+        gap = Layer(Cst(),dist[i])
+        for j=1:length(wv)
+          for f in [ Evanescent(), Propagative()]
+              for p in [te(),tm()]
+                  q[j] += heat_transfer_w(f ,b1 ,b2, gap ,p ,wv[j], 400.0, 300.0 ;toler=tol)
+               end
+          end
+        end
+      qtot[i]=trapz(wv,q)
+      output_vec = [dist[i] qtot[i]]
+      write(fn, "$(output_vec) \r\n")
+      println("distance =",dist[i])
+      println("qtot =",qtot[i])
+      end
+      close(fn)
+      plot(dist,qtot,xaxis=:log10,yaxis=:log10)
 
   end
