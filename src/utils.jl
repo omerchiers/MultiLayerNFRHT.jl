@@ -8,5 +8,5 @@ function trapz(x,y)
    for i in 2:n
        r += (x[i] - x[i-1]) * (y[i] + y[i-1])
    end
-       r/2.0
+       return r*0.5
 end
