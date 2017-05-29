@@ -3,7 +3,7 @@ module RadiativeHeat
 using Plots
 
 # export functions
-export bose_einstein,wien,farfield_transfer,
+export bose_einstein,wien,farfield_transfer,emissivity,
        transmission_kx_w,transmission_w,
        compute_kz,compute_kx,
        heat_flux,heat_flux2,heat_flux_w,heat_flux_integrand,
@@ -14,10 +14,11 @@ export bose_einstein,wien,farfield_transfer,
        trapz
 
 #export types
-export OptProp,Model,
+export OptProp,Model,Layer,
        TotalField,Evanescent,Propagative,
        Polarization,te,tm,
-       Structure,Bulk,Layer
+       BulkOrMultiLayer,LayerOrMultiLayer
+
 
 # export constants
 export ħ, kb, c0,sigma
