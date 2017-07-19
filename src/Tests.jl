@@ -582,5 +582,264 @@ function test8(T1,T2,dist,dim)
       end
       close(fn)
       plot(dist,qtot,xaxis=:log10,yaxis=:log10)
+  end
 
+
+"total heat transfer as a function of separation distance using the function total_heat_transfer"
+
+function test30(tkx,tw)
+    file_name = "data/heat_transfer/Al-SiC-Al/Al_SiC_th=400nm_Al_q_vs_dist.dat"
+    fn = open(file_name, "a")
+    wv  = collect(linspace(1e12,1e15,2000))
+    dist= collect(logspace(-8,-4,50))
+    b1  = Layer(Al(),0.0)
+    b2  = [Layer(Sic(),400.0e-9) ; Layer(Al(),0.0)]
+    #@time heat_flux_integrand(Evanescent(),b1,b1,gap,te(),300.0,tol)
+    qtot = zeros(Float64,50)
+    q    = zeros(Float64,5)
+    for i=1:length(dist)
+        gap = Layer(Cst(),dist[i])
+        q   = total_heat_transfer(b1 , b2 , gap , 300.0,400.0,1.0e12,1.0e15; tolkx=tkx,tolw=tw)
+        output_vec = [dist[i] q']
+        write(fn, "$(output_vec) \r\n")
+        println("distance =",dist[i])
+        println("qtot =",q[5])
+        qtot[i] = q[5]
+    end
+   close(fn)
+   plot(dist,qtot,xaxis=:log10,yaxis=:log10)
+ end
+
+ "spectral heat transfer Al-SiC-Al thickness SiC layer = 400nm, gap separation = 5.1 microns"
+function test31(tol)
+    file_name = "data/heat_transfer_w/Al-SiC-Al/Al_SiC_th=400nm_Al_q_dist=5.1micron_tol="*string(tol)*".dat"
+    fn = open(file_name, "a")
+     wv  = collect(linspace(1e12,1e15,1000))
+     b1  = Layer(Al(),0.0)
+     b2  = [Layer(Sic(),400.0e-9) ; Layer(Al(),0.0)]
+     qtot = zeros(Float64,1000)
+     output_vec = zeros(Float64,5)
+     gap  = Layer(Cst(),5.1e-6)
+
+     for j=1:length(wv)
+       cnt = 0
+       q    = zeros(Float64,5)
+       for f in [ Evanescent(), Propagative()]
+           for p in [te(),tm()]
+               cnt = cnt +1
+               q[cnt] = heat_transfer_w(f ,b1 ,b2, gap ,p ,wv[j], 400.0, 300.0 ;toler=tol)
+            end
+       end
+       qtot[j] = sum(q)
+       output_vec = [wv[j] q' sum(q)]
+       write(fn, "$(wv[j]), $(q'), $(sum(q)) \n")
+
+     end
+    close(fn)
+    plot(wv,qtot,xaxis=:log10,yaxis=:log10)
+  end
+
+
+"w-kx map of transmission coefficient for Al-SiC-Al thickness SiC layer = 400nm, gap separation = 5.1 microns"
+  function test32(w,kxmax,numkx,tol)
+      file_name = "data/w-kx_map/Al-SiC-Al/Al_SiC_th=400nm_Al_q_dist=5.1micron_w="*string(w)*".dat"
+      fn = open(file_name, "a")
+      kx = collect(linspace(0,kxmax,numkx))
+      b1  = Layer(Al(),0.0)
+      b2  = [Layer(Sic(),400.0e-9) ; Layer(Al(),0.0)]
+      qtot = zeros(Float64,length(kx))
+      output_vec = zeros(Float64,5)
+      gap  = Layer(Cst(),5.1e-6)
+
+      for j=1:length(kx)
+        cnt = 0
+        q_ev    = zeros(Float64,2)
+        q_pr    = zeros(Float64,2)
+            for p in [te(),tm()]
+                cnt = cnt +1
+                if kx[j]<= w/c0
+                     q_pr[cnt] = transmission_kx_w(Propagative(), b1 , b2 , gap ,p , kx[j] ,w)
+                     q_ev[cnt] = 0.0
+                     #println(q_pr[cnt])
+                elseif  kx[j]> w/c0
+                     q_ev[cnt] = transmission_kx_w(Evanescent(), b1 , b2 , gap ,p , kx[j] ,w)
+                     #
+                     q_pr[cnt] = 0.0
+                end
+             end
+        qtot[j] = (sum(q_ev) + sum(q_pr))/4.0/pi^2
+        println(qtot[j])
+        write(fn, "$(w), $(kx[j]), $(qtot[j]) \n")
+
+      end
+     close(fn)
+     #plot(kx,qtot,xaxis=:log10,yaxis=:log10)
+   end
+
+
+"trapezium integration of transmission for Al-SiC-Al thickness SiC layer = 400nm, gap separation = 5.1 microns"
+function test33(w,kxmax,numkx)
+    #file_name = "data/w-kx_map/Al-SiC-Al/Al_SiC_th=400nm_Al_q_dist=5.1micron_w="*string(w)*".dat"
+    #fn = open(file_name, "a")
+    kx = collect(linspace(0,kxmax,numkx))
+    b1  = Layer(Al(),0.0)
+    b2  = [Layer(Sic(),400.0e-9) ; Layer(Al(),0.0)]
+    qtot = zeros(Float64,length(kx))
+    output_vec = zeros(Float64,5)
+    gap  = Layer(Cst(),5.1e-6)
+
+    for j=1:length(kx)
+        cnt = 0
+        q_ev    = zeros(Float64,2)
+        q_pr    = zeros(Float64,2)
+        for p in [te(),tm()]
+            cnt = cnt +1
+            if kx[j]<= w/c0
+                q_pr[cnt] = transmission_kx_w(Propagative(), b1 , b2 , gap ,p , kx[j] ,w)
+                q_ev[cnt] = 0.0
+                #println(q_pr[cnt])
+            elseif  kx[j]> w/c0
+                q_ev[cnt] = transmission_kx_w(Evanescent(), b1 , b2 , gap ,p , kx[j] ,w)
+                        #
+                q_pr[cnt] = 0.0
+            end
+        end
+        qtot[j] = kx[j]*(sum(q_ev) + sum(q_pr))/4.0/pi^2
+
+        #write(fn, "$(w), $(kx[j]), $(qtot[j]) \n")
+    end
+    integr1 = (bose_einstein(w,400.0)-bose_einstein(w,300.0))*trapz(kx,qtot)
+    println("integration trapeze données Julia =",integr1)
+
+    #close(fn)
+    #plot(kx,qtot,xaxis=:log10,yaxis=:log10)
+end
+
+"trapezium integration of transmission for Al-SiC-Al thickness SiC layer = 400nm, gap separation = 5.1 microns with data obtained from fortran code"
+function test34(w)
+
+    data = readdlm("data/w-kx_map/Al-SiC-Al/Fortran_T_vs_kx_w="*string(w)*"_rad_s.dat")
+    integr = (bose_einstein(w,400.0)-bose_einstein(w,300.0))*trapz(data[:,1],data[:,1].*data[:,3])
+    println("integration trapeze données Fortran =",integr)
+
+    # Trapezium integration with Julia
+    test33(w,data[end,1],length(data[:,1]))
+
+    # hcuadrature integration with Julia
+    test35(w,1e-12)
+
+    # Simpson integration with Julia
+    test36(w,data[end,1],length(data[:,1]))
+
+
+end
+
+"hcuadrature integration of transmission for Al-SiC-Al thickness SiC layer = 400nm, gap separation = 5.1 microns with Julia"
+function test35(w,tol)
+
+  b1  = Layer(Al(),0.0)
+  b2  = [Layer(Sic(),400.0e-9) ; Layer(Al(),0.0)]
+  gap  = Layer(Cst(),5.1e-6)
+
+  cnt = 0
+  q    = zeros(Float64,5)
+
+  for f in [ Evanescent(), Propagative()]
+      for p in [te(),tm()]
+          cnt = cnt +1
+          q[cnt] = heat_transfer_w(f ,b1 ,b2, gap ,p ,w, 400.0, 300.0 ;toler=tol)
+       end
+  end
+  qtot = sum(q)
+  println("integration hcuadrature Julia =",qtot)
+end
+
+"integration of transmission for Al-SiC-Al thickness SiC layer = 400nm, gap separation = 5.1 microns of julia data with simpson rule"
+function test36(w,kxmax,numkx)
+  kx   = collect(linspace(0,kxmax,numkx))
+  b1   = Layer(Al(),0.0)
+  b2   = [Layer(Sic(),400.0e-9) ; Layer(Al(),0.0)]
+  qtot = zeros(Float64,length(kx))
+  q    = zeros(Float64,3)
+  gap  = Layer(Cst(),5.1e-6)
+
+  for j=1:length(kx)-1
+      kxa = kx[j]
+      kxb = kx[j+1]
+      q    = zeros(Float64,3)
+      for i=1:3
+          cnt = 0
+          kxx = kxa + 0.5*(i-1)*(kxb-kxa)
+          q_ev    = zeros(Float64,2)
+          q_pr    = zeros(Float64,2)
+          for p in [te(),tm()]
+              cnt = cnt +1
+              if kxx<= w/c0
+                  q_pr[cnt] = kxx*transmission_kx_w(Propagative(), b1 , b2 , gap ,p , kxx ,w)
+                  q_ev[cnt] = 0.0
+                  #println(q_pr[cnt])
+              elseif  kxx> w/c0
+                  q_ev[cnt] = kxx*transmission_kx_w(Evanescent(), b1 , b2 , gap ,p , kxx ,w)
+                  q_pr[cnt] = 0.0
+              end
+          end
+          q[i] = sum(q_ev) + sum(q_pr)
+    end
+    qtot[j] = (kxb-kxa)*(q[1] + 4.0*q[2] + q[3])/6.0
+
+  end
+  integr = (bose_einstein(w,400.0)-bose_einstein(w,300.0))*sum(qtot)/4.0/pi^2
+  println("integration simpson Julia =",integr)
+end
+
+
+"Test for the reflectivity of a slab with scattering matrix"
+function test36(w)
+    slab = [Layer(Cst(),0.0) ; Layer(Cst(10+0.0*im),1.0e-6) ; Layer(Cst(),0.0)]
+    theta = collect(linspace(0.0,pi*0.5,1000))
+    kxv = compute_kx.(theta,1.0+0.0*im ,w)
+    rr = zeros(Float64,length(theta))
+    tt = zeros(Float64,length(theta))
+
+    for i=1:length(theta)
+        r, t = rt(slab, te(), kxv[i] ,w)
+        rr[i]=abs(r)^2
+        tt[i]=abs(t)^2
+    end
+    plot(theta,rr)
+    plot!(theta,tt)
+    plot!(theta,tt.+rr)
+end
+
+"Test parallel loop"
+function test37()
+    tol = logspace(-12,-6,7)
+    pmap(test38,tol)
+end
+
+@everywhere function test38(tol)
+    file_name = "data/heat_transfer_w/Al-SiC-Al/Al_SiC_th=400nm_Al_q_dist=5.1micron_tol="*string(tol)*".dat"
+    fn = open(file_name, "a")
+     wv  = collect(linspace(1e12,1e15,1000))
+     b1  = Layer(Al(),0.0)
+     b2  = [Layer(Sic(),400.0e-9) ; Layer(Al(),0.0)]
+     qtot = zeros(Float64,1000)
+     output_vec = zeros(Float64,5)
+     gap  = Layer(Cst(),5.1e-6)
+
+     for j=1:length(wv)
+       cnt = 0
+       q    = zeros(Float64,5)
+       for f in [ Evanescent(), Propagative()]
+           for p in [te(),tm()]
+               cnt = cnt +1
+               q[cnt] = heat_transfer_w(f ,b1 ,b2, gap ,p ,wv[j], 400.0, 300.0 ;toler=tol)
+            end
+       end
+       qtot[j] = sum(q)
+       output_vec = [wv[j] q' sum(q)]
+       write(fn, "$(wv[j]), $(q'), $(sum(q)) \n")
+
+     end
+    close(fn)
   end
