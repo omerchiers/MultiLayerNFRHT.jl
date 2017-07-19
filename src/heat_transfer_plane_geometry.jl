@@ -22,7 +22,7 @@ function transmission_kx_w(:: Evanescent ,b1 :: LayerOrMultiLayer, b2 :: LayerOr
     exp_val1 = exp(-2.0*imag(k2z)*gap.thickness)         :: Float64
     exp_val2 = exp(2.0*im*k2z*gap.thickness)            :: Complex{Float64}
 
-    return 4.0*exp_val1*imag(r_21)*imag(r_23)/abs(1.0-r_21*r_23*exp_val2)^2,4.0*exp_val1*imag(r_21)*imag(r_23),abs(1.0-r_21*r_23*exp_val2)^2
+    return 4.0*exp_val1*imag(r_21)*imag(r_23)/abs(1.0-r_21*r_23*exp_val2)^2
 
 end
 
@@ -66,7 +66,7 @@ function transmission_w(field :: Propagative ,b1 :: LayerOrMultiLayer, b2 :: Lay
 
     val :: Float64  = 0.0
     err :: Float64  = 0.0
-    (val,err) = hquadrature(t2_kx_w, 0.0, 1.0 ; reltol=tol, abstol=0, maxevals=0)
+    (val,err) = hquadrature(t2_kx_w, 0.0 , 1.0 ; reltol=tol, abstol=0, maxevals=0)
     return val*(w/c0)
 end
 
