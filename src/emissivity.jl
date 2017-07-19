@@ -26,10 +26,21 @@ function planck(w,T)
     return  bose_einstein(w,T)*(w/c0)^2/(2.0*pi)^2
 end
 
+" Computes the fraction of the blackbody spectrum "
+function planck_fraction(w1,w2,T)
+  pl(w) = planck(w,T)
+  (val, err) = hquadrature(pl, w1, w2 ;reltol=1e-8, abstol=0, maxevals=0)
+  return val/sigma/T^4
+end
+
 " Wien frequency : return the frequency for which Planck distribution is maximum"
 function wien(T)
     return   2.8214393721220787*kb*T/ħ
 end
+
+" Unit conversion from rad/s to wavelength in m"
+unitconv(w) = 2.0*pi*c0/w
+  
 
 function emissivity_kx_w(struct :: BulkOrMultiLayer, kx, w)
 
