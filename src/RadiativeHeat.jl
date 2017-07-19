@@ -10,7 +10,8 @@ export bose_einstein,wien,farfield_transfer,emissivity,
        heat_flux_integrand,heat_transfer2,
        heat_transfer,heat_transfer_w,
        total_heat_transfer,
-       rt,planck,
+       rt,planck,planck_fraction,
+       unitconv,
        trapz
 
 #export types
