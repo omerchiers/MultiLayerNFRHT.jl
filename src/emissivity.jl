@@ -20,7 +20,9 @@ end
 
 """
 Planck's Distribution using the definition :
-``q_{\omega}^{\text{BB}} =  \Theta(\omega,T) \frac{k_0^2}{4\pi^2}  ``
+```math
+q_{\\omega}^{\\text{BB}} =  \\Theta(\\omega,T) \\frac{k_0^2}{4π^2}
+```
 """
 function planck(w,T)
     return  bose_einstein(w,T)*(w/c0)^2/(2.0*pi)^2
@@ -40,7 +42,7 @@ end
 
 " Unit conversion from rad/s to wavelength in m"
 unitconv(w) = 2.0*pi*c0/w
-  
+
 
 function emissivity_kx_w(struct :: BulkOrMultiLayer, kx, w)
 
