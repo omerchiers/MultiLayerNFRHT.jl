@@ -1,6 +1,9 @@
 
 module RadiativeHeat
-using Plots
+
+# Dependencies
+using Cubature, Roots
+
 
 # export functions
 export bose_einstein,wien,farfield_transfer,emissivity,
@@ -16,7 +19,7 @@ export bose_einstein,wien,farfield_transfer,emissivity,
        trapz
 
 #export types
-export OptProp,Model,Layer,
+export OptProp,Model,Layer,MultiLayer,
        TotalField,Evanescent,Propagative,
        Polarization,te,tm,
        BulkOrMultiLayer,LayerOrMultiLayer
