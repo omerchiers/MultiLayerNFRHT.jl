@@ -1,7 +1,7 @@
 
-abstract TotalField
-immutable Evanescent  <: TotalField end
-immutable Propagative <: TotalField end
+abstract type TotalField end
+struct Evanescent  <: TotalField end
+struct Propagative <: TotalField end
 
 # abstract Spectrum
 # immutable Frequency <: Spectrum end
