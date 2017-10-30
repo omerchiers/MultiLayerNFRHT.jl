@@ -57,7 +57,7 @@ function rt(pol :: tm, eps1,eps2, k0z,k2z,w)
 end
 
 # Fresnel coefficient of a semi-infinite medium : as a function of incidence angle and frequency
-function rt(struct :: Bulk, pol :: Polarization, kx ,w)
+function rt(structure :: Bulk, pol :: Polarization, kx ,w)
     eps1 = permittivity(struct.ep1,w)
     eps2 = permittivity(struct.ep2,w)
 
@@ -71,7 +71,7 @@ end
 
 # Fresnel coefficient of a multilayered semi-infinite medium : as a function of incidence angle and frequency
 
-function rt(struct :: MultiLayer, pol :: Polarization, kx ,w)
+function rt(structure :: MultiLayer, pol :: Polarization, kx ,w)
       S   =[1.0+0.0*im  0.0+0.0*im ;
               0.0+0.0*im  1.0+0.0*im ]
     if real(kx)<w/c0 || real(kx)>w/c0
@@ -82,7 +82,7 @@ function rt(struct :: MultiLayer, pol :: Polarization, kx ,w)
   end
 end
 
-function scattering_matrix!(S,struct :: MultiLayer, pol :: Polarization, kx, w)
+function scattering_matrix!(S,structure :: MultiLayer, pol :: Polarization, kx, w)
         for i=2:length(struct)
             eps1 :: Complex128 = permittivity(struct[i-1].material,w)
             eps2 :: Complex128 = permittivity(struct[i].material,w)
