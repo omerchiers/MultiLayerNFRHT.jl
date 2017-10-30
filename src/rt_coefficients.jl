@@ -58,8 +58,8 @@ end
 
 # Fresnel coefficient of a semi-infinite medium : as a function of incidence angle and frequency
 function rt(structure :: Bulk, pol :: Polarization, kx ,w)
-    eps1 = permittivity(struct.ep1,w)
-    eps2 = permittivity(struct.ep2,w)
+    eps1 = permittivity(structure.ep1,w)
+    eps2 = permittivity(structure.ep2,w)
 
     k0z   = compute_kz(kx,eps1,w)
     k2z   = compute_kz(kx,eps2,w)
@@ -75,7 +75,7 @@ function rt(structure :: MultiLayer, pol :: Polarization, kx ,w)
       S   =[1.0+0.0*im  0.0+0.0*im ;
               0.0+0.0*im  1.0+0.0*im ]
     if real(kx)<w/c0 || real(kx)>w/c0
-        S = scattering_matrix!(S,struct,pol,kx,w)
+        S = scattering_matrix!(S,structure,pol,kx,w)
         return S[2,1], S[1,1]
     else
         return 1.0+0.0*im, 0.0+0.0*im
@@ -83,17 +83,17 @@ function rt(structure :: MultiLayer, pol :: Polarization, kx ,w)
 end
 
 function scattering_matrix!(S,structure :: MultiLayer, pol :: Polarization, kx, w)
-        for i=2:length(struct)
-            eps1 :: Complex128 = permittivity(struct[i-1].material,w)
-            eps2 :: Complex128 = permittivity(struct[i].material,w)
+        for i=2:length(structure)
+            eps1 :: Complex128 = permittivity(structure[i-1].material,w)
+            eps2 :: Complex128 = permittivity(structure[i].material,w)
             k0z   = compute_kz(kx,eps1,w)
             k2z   = compute_kz(kx,eps2,w)
             r,t = rt(pol, eps1,eps2, k0z,k2z,w)
 
-            S[1,1] =(S[1,1]*t*exp(im*struct[i-1].thickness*k0z))/(1.0+0.0*im - S[1,2]*r*exp(2.0*im*struct[i-1].thickness*k0z))
-            S[1,2] =(S[1,2]*exp(2.0*im*struct[i-1].thickness*k0z)-r)/(1.0+0.0*im - S[1,2]*r*exp(2.0*im*struct[i-1].thickness*k0z))
-            S[2,1] =(S[1,1]*S[2,2]*r*exp(im*struct[i-1].thickness*k0z))/t+S[2,1]
-            S[2,2] =(S[2,2]*exp(im*struct[i-1].thickness*k0z)*(r*S[1,2] + 1.0+0.0*im))/t
+            S[1,1] =(S[1,1]*t*exp(im*structure[i-1].thickness*k0z))/(1.0+0.0*im - S[1,2]*r*exp(2.0*im*structure[i-1].thickness*k0z))
+            S[1,2] =(S[1,2]*exp(2.0*im*structure[i-1].thickness*k0z)-r)/(1.0+0.0*im - S[1,2]*r*exp(2.0*im*structure[i-1].thickness*k0z))
+            S[2,1] =(S[1,1]*S[2,2]*r*exp(im*structure[i-1].thickness*k0z))/t+S[2,1]
+            S[2,2] =(S[2,2]*exp(im*structure[i-1].thickness*k0z)*(r*S[1,2] + 1.0+0.0*im))/t
         end
     return S
 end
