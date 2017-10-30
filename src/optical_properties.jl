@@ -2,10 +2,10 @@
 # Permitivities are given in the convention : eps_real - i*eps_im
 
 export convert_prop, permittivity, epsi, refr, Drude, Lorentz, Cbn, Sic, Si, Al, Au,Cst
-abstract OptProp
+abstract type OptProp end
 
 # Generic
-immutable Model <: OptProp
+struct Model <: OptProp
     eps0  :: Float64
     wp    :: Float64
     w0    :: Float64
@@ -13,16 +13,16 @@ immutable Model <: OptProp
 end
 
 # Dielectrics
-immutable Sic <: OptProp end
-immutable Cbn <: OptProp end
-immutable Si <: OptProp end
+struct Sic <: OptProp end
+struct Cbn <: OptProp end
+struct Si <: OptProp end
 
 # Conductors
-immutable Al <: OptProp end
-immutable Au <: OptProp end
+struct Al <: OptProp end
+struct Au <: OptProp end
 
 # Constant permittivity
-immutable Cst <: OptProp
+struct Cst <: OptProp
     val :: Complex128
 end
 Cst() = Cst(1.0+im*0.0)
