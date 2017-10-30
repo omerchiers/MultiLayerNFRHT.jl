@@ -34,7 +34,7 @@ include("optical_properties.jl")
 include("rt_coefficients.jl")
 include("emissivity.jl")
 include("heat_transfer.jl")
-include("SPP.jl")
+include("spp.jl")
 include("utils.jl")
 
 
