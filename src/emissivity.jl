@@ -44,10 +44,10 @@ end
 unitconv(w) = 2.0*pi*c0/w
 
 
-function emissivity_kx_w(struct :: BulkOrMultiLayer, kx, w)
+function emissivity_kx_w(structure :: BulkOrMultiLayer, kx, w)
 
-    (rte,t)=rt(struct, te(),kx,w)
-    (rtm,t)=rt(struct, tm(),kx,w)
+    (rte,t)=rt(structure, te(),kx,w)
+    (rtm,t)=rt(structure, tm(),kx,w)
 
     integr1 = 1.0-abs(rte)^2
     integr2 = 1.0-abs(rtm)^2
@@ -57,8 +57,8 @@ function emissivity_kx_w(struct :: BulkOrMultiLayer, kx, w)
 end
 
 " Monocromatic emissivity"
-function emissivity_w(struct :: BulkOrMultiLayer, w)
-    e_kx(kx) = kx*emissivity_kx_w(struct ,kx, w)
+function emissivity_w(structure :: BulkOrMultiLayer, w)
+    e_kx(kx) = kx*emissivity_kx_w(structure ,kx, w)
 
     val :: Float64  = 0.0
     err :: Float64  = 0.0
@@ -68,8 +68,8 @@ function emissivity_w(struct :: BulkOrMultiLayer, w)
 end
 
 
-function emissivity(struct :: BulkOrMultiLayer,T)
-    e(u) = emissivity_w(struct, u*kb*T/ħ)*u^3/(exp(u)-1.0)
+function emissivity(structure :: BulkOrMultiLayer,T)
+    e(u) = emissivity_w(structure, u*kb*T/ħ)*u^3/(exp(u)-1.0)
     e2(t) = e(t/(1.0-t))/(1.0-t)^2
 
     val :: Float64  = 0.0
@@ -79,8 +79,8 @@ function emissivity(struct :: BulkOrMultiLayer,T)
     return val*kb^4/ħ^3/c0^2/(2.0*pi)^2/sigma
 end
 
-function emissivity(struct :: BulkOrMultiLayer,T,wi,wf)
-    e(u) = emissivity_w(struct, u*kb*T/ħ)*u^3/(exp(u)-1.0)
+function emissivity(structure :: BulkOrMultiLayer,T,wi,wf)
+    e(u) = emissivity_w(structure, u*kb*T/ħ)*u^3/(exp(u)-1.0)
     val :: Float64  = 0.0
     err :: Float64  = 0.0
     (val,err) = hquadrature(e, wi*ħ/kb/T , wf*ħ/kb/T ; reltol=1e-8, abstol=0, maxevals=0)
