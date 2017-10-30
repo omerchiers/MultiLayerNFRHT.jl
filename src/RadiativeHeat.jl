@@ -19,7 +19,7 @@ export bose_einstein,wien,farfield_transfer,emissivity,
        trapz
 
 #export types
-export OptProp,Model,Layer,MultiLayer,
+export OptProp,Model,Bulk,Layer,MultiLayer,
        TotalField,Evanescent,Propagative,
        Polarization,te,tm,
        BulkOrMultiLayer,LayerOrMultiLayer
