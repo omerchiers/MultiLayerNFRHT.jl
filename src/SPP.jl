@@ -1,5 +1,4 @@
 # File for computing Surface-Plasmon-Polariton dispersion relation
-using Roots, Plots
 
 " Parallel wavevector for SPP mode on a single interface "
 kspp(eps1,eps2,w) = w/c0*sqrt(eps1*eps2/(eps1+eps2))
@@ -39,7 +38,5 @@ function dispersion_relation(a,material1 :: OptProp, material2 :: OptProp, mater
         kpar[i] = solve_kpar(a,eps1[i],eps2[i],eps3[i],wv[i])
     end
 
-    plot(kpar,wv)
-
-
+    return kpar
 end
