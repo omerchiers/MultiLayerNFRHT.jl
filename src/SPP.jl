@@ -2,7 +2,7 @@
 using Roots, Plots
 
 " Parallel wavevector for SPP mode on a single interface "
-kssp(eps1,eps2,w) = w/c0*sqrt(eps1*eps2/(eps1+eps2))
+kspp(eps1,eps2,w) = w/c0*sqrt(eps1*eps2/(eps1+eps2))
 
 
 " Dispersion relation for SPP modes on a film "
@@ -11,7 +11,7 @@ function kk(kpar,eps,w)
     return sqrt(kpar^2 - eps*(w/c0)^2)
 end
 
-function kssp(kpar,a,eps1,eps2,eps3,w)
+function kspp(kpar,a,eps1,eps2,eps3,w)
     k1 = kk(kpar,eps1,w)
     k2 = kk(kpar,eps2,w)
     k3 = kk(kpar,eps3,w)

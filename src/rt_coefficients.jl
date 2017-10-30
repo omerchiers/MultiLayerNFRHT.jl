@@ -81,12 +81,12 @@ end
 function rt(struct :: MultiLayer, pol :: Polarization, kx ,w)
       S   =[1.0+0.0*im  0.0+0.0*im ;
               0.0+0.0*im  1.0+0.0*im ]
-  #  if real(kx)<w/c0 || real(kx)>w/c0
+    if real(kx)<w/c0 || real(kx)>w/c0
         S = scattering_matrix!(S,struct,pol,kx,w)
         return S[2,1], S[1,1]
-  #  else
-  #      return 1.0+0.0*im, 0.0+0.0*im
-  #  end
+    else
+        return 1.0+0.0*im, 0.0+0.0*im
+  end
 end
 
 function scattering_matrix!(S,struct :: MultiLayer, pol :: Polarization, kx, w)
