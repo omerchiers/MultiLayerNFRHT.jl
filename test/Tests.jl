@@ -426,17 +426,21 @@ function test8(T1,T2,dist,dim)
   end
 
   " Check if transmission_kx_w gives 2 for a black body"
-  function test24()
+  function test24(dist,kx)
      wv  = collect(linspace(1e13,1e15,1000))
-     b1  = Layer(Cst(1.00001+im*0.001))
-     gap = Layer(Cst(),1.0e-5)
+     b1  = Layer(Cst(1.000001+im*0.001))
+     gap = Layer(Cst(),dist)
      #@time heat_flux_integrand(Evanescent(),b1,b1,gap,te(),300.0,tol)
      q = zeros(Float64,1000)
      for i=1:1000
-        for f in [Evanescent(), Propagative()]
+        if kx <= wv[i]/c0
             for p in [te(),tm()]
-                q[i] += transmission_kx_w(f,b1,b1,gap,p,1e4,wv[i])
-             end
+                q[i] += transmission_kx_w(Propagative(),b1,b1,gap,p,kx,wv[i])
+            end
+        elseif kx > wv[i]/c0
+            for p in [te(),tm()]
+                q[i] += transmission_kx_w(Evanescent(),b1,b1,gap,p,kx,wv[i])
+            end
         end
       end
       println(q[1000])
