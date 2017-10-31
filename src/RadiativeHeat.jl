@@ -6,7 +6,8 @@ using Cubature, Roots
 
 
 # export functions
-export bose_einstein,wien,farfield_transfer,emissivity,emissivity_w,
+export bose_einstein,wien,farfield_transfer,
+       emissivity_kx_w,emissivity_w,emissivity,
        transmission_kx_w,transmission_w,
        compute_kz,compute_kx,
        heat_flux,heat_flux2,heat_flux_w,heat_flux_integrand,
