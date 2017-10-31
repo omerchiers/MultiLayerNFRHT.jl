@@ -81,6 +81,11 @@ function permittivity(material::Al,w) :: Complex128
     return permittivity(alum,w)
 end
 
+function permittivity(material::Au,w) :: Complex128
+    alum = Model(9.4,13584.25e12,0.0,109.96e12)
+    return permittivity(alum,w)
+end
+
 function permittivity(material::Si,w) :: Complex128
     return 11.7+im*0.0
 end
