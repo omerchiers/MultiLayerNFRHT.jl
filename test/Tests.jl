@@ -1,5 +1,5 @@
 
-using RadiativeHeat
+using MultiLayerNFRHT
 using Plots; pyplot(), Cubature
 
 function test1()
