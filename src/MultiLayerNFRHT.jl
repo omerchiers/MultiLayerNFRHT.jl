@@ -1,5 +1,4 @@
-
-module RadiativeHeat
+module MultiLayerNFRHT
 
 # Dependencies
 using Cubature, Roots
@@ -38,5 +37,4 @@ include("heat_transfer.jl")
 include("spp.jl")
 include("utils.jl")
 
-
-end
+end # module
