@@ -23,7 +23,7 @@ end
 Layer(material)  = Layer(material,0.0)
 
 # new Vector type
-MultiLayer = Vector{Layer}
+const MultiLayer = Vector{Layer}
 
 
 function compute_kz(kx,eps,w)
