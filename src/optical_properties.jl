@@ -6,11 +6,13 @@ abstract type OptProp end
 
 # Generic
 struct Model <: OptProp
-    eps0  :: Float64
-    wp    :: Float64
-    w0    :: Float64
-    gamma :: Float64
+    eps0   :: Float64
+    wp     :: Float64
+    w0     :: Float64
+    gamma0 :: Float64
+    gamma1 :: Float64
 end
+Model(eps0,wp,w0,gamma0) = Model(eps0,wp,w0,gamma0,0.0)
 
 # Dielectrics
 struct Sic <: OptProp end
@@ -19,7 +21,12 @@ struct Si <: OptProp end
 
 # Conductors
 struct Al <: OptProp end
-struct Au <: OptProp end
+struct Au <: OptProp
+    mfp :: Float64
+    a   :: Float64
+end
+Au(mfp) = Au(mfp,0.0)
+Au() = Au(1.0,0.0)
 
 # Constant permittivity
 struct Cst <: OptProp
@@ -48,11 +55,12 @@ function permittivity() end
 
 
 function permittivity(material::Model,w) :: Complex128
-     eps0  = material.eps0
-     wp    = material.wp
-     w0    = material.w0
-     gamma = material.gamma
-    return  eps0 + wp^2/(w0*w0 - w*w - im*w*gamma)
+     eps0   = material.eps0
+     wp     = material.wp
+     w0     = material.w0
+     gamma0 = material.gamma0
+     gamma1 = material.gamma1
+    return  eps0 + wp^2/(w0*w0 - w*w - im*w*(gamma0+gamma1))
 end
 
 
@@ -62,7 +70,6 @@ function permittivity(material::Cbn,w) :: Complex128
     w_lo    = 2.451e14 # rad/s
     w_to    = 1.985e14 # rad/s
     gamma   = 9.934e11 # rad/s
-
     return eps_fin*(w^2-w_lo^2 + im*gamma*w)/(w^2-w_to^2 + im*gamma*w)
 end
 
@@ -71,7 +78,6 @@ function permittivity(material::Sic,w) :: Complex128
     w_lo    = 1.827e14 # rad/s
     w_to    = 1.495e14 # rad/s
     gamma   = 8.971e11 # rad/s
-
     return eps_fin*(w^2-w_lo^2 + im*gamma*w)/(w^2-w_to^2 + im*gamma*w)
 end
 
@@ -82,7 +88,8 @@ function permittivity(material::Al,w) :: Complex128
 end
 
 function permittivity(material::Au,w) :: Complex128
-    gold = Model(9.4,13584.25e12,0.0,109.96e12)
+    gamma1 = material.a*vf_au/material.mfp
+    gold   = Model(9.4,13584.25e12,0.0,109.96e12,gamma1)
     return permittivity(gold,w)
 end
 
