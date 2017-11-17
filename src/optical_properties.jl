@@ -25,7 +25,7 @@ struct Au <: OptProp
     mfp :: Float64
     a   :: Float64
 end
-Au(mfp) = Au(mfp,0.0)
+Au(mfp) = Au(mfp,1.0)
 Au() = Au(1.0,0.0)
 
 # Constant permittivity
