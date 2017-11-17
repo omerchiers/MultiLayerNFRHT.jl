@@ -26,7 +26,7 @@ export OptProp,Model,Bulk,Layer,MultiLayer,
 
 
 # export constants
-export ħ, kb, c0,sigma
+export ħ, kb, c0,sigma,vf_au
 
 
 include("physical_constants.jl")
