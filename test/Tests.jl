@@ -1,3 +1,4 @@
+# compatible with version v0.1 of MultiLayerNFRHT
 
 using MultiLayerNFRHT
 using Plots; pyplot(), Cubature
