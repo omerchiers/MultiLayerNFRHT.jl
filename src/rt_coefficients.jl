@@ -1,6 +1,5 @@
 # This file defines the reflection and transmission coefficients of a multilayer
 
-#using StaticArrays
 
 abstract type Polarization end
 struct te <: Polarization end
