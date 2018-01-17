@@ -1,6 +1,5 @@
 # This file contains the functions to compute the emissivities of bulks and multilayers
 
-using Cubature # find package for integration
 
 BulkOrMultiLayer = Union{Layer,Bulk,MultiLayer}
 LayerOrMultiLayer = Union{Layer,MultiLayer}
