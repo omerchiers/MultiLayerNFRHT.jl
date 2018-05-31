@@ -1,7 +1,7 @@
 # This file containes all the optical properties.
 # Permitivities are given in the convention : eps_real + i*eps_im
 
-export convert_prop, permittivity, epsi, refr, Drude, Lorentz, Cbn, Sic, Si, Al, Au,Cst
+export convert_prop, permittivity, epsi, refr, Drude, Lorentz, Cbn, Sic, Si, Al, Au,Au_latella,Cst
 abstract type OptProp end
 
 # Generic
@@ -27,6 +27,13 @@ struct Au <: OptProp
 end
 Au(mfp) = Au(mfp,1.0)
 Au() = Au(1.0,0.0)
+
+struct Au_latella{T <: Real} <: OptProp
+    mfp :: T
+    a   :: T
+end
+Au_latella(mfp) = Au_latella(mfp,1.0)
+Au_latella() = Au_latella(1.0,0.0)
 
 # Constant permittivity
 struct Cst <: OptProp
@@ -90,6 +97,12 @@ end
 function permittivity(material::Au,w) :: Complex128
     gamma1 = material.a*vf_au/material.mfp
     gold   = Model(9.4,13584.25e12,0.0,109.96e12,gamma1)
+    return permittivity(gold,w)
+end
+
+function permittivity(material::Au_latella,w) :: Complex128
+    gamma1 = material.a*vf_au/material.mfp
+    gold   = Model(1.0,1.37e16,0.0,5.32e13,gamma1)
     return permittivity(gold,w)
 end
 
