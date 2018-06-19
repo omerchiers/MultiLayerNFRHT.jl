@@ -14,6 +14,12 @@ struct Model <: OptProp
 end
 Model(eps0,wp,w0,gamma0) = Model(eps0,wp,w0,gamma0,0.0)
 
+struct Bruggeman{T,U<: OptProp} <: OptProp
+   phase1  :: T
+   phase2  :: T
+   volfrac :: U
+end
+
 # Dielectrics
 struct Sic <: OptProp end
 struct Cbn <: OptProp end
@@ -112,4 +118,13 @@ end
 
 function permittivity(material::Cst,w) :: Complex128
     return material.val
+end
+
+function permittivity(material::Bruggeman,w) :: Complex128
+    eps1 = permittivity(material.phase1,w)
+    eps2 = permittivity(material.phase2,w)
+    p    = sqrt(eps1)/sqrt(eps2)
+    b    = ((3.0*material.volfrac-1.0)*(1.0/p - p)+p)/4.0
+    z    = b+sqrt(b*b + 0.5)
+    return transpose(z*sqrt(eps2)*sqrt(eps1))
 end
