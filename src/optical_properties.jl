@@ -2,6 +2,8 @@
 # Permitivities are given in the convention : eps_real + i*eps_im
 
 export convert_prop, permittivity, epsi, refr, Drude, Lorentz, Cbn, Sic, Si, Al, Au,Au_latella,Cst
+export Bruggeman, MaxwellGarnett
+
 abstract type OptProp end
 
 # Generic
@@ -14,10 +16,17 @@ struct Model <: OptProp
 end
 Model(eps0,wp,w0,gamma0) = Model(eps0,wp,w0,gamma0,0.0)
 
-struct Bruggeman{T,U<: OptProp} <: OptProp
+# Effective medium models
+struct Bruggeman{T, U , V} <: OptProp
    phase1  :: T
-   phase2  :: T
-   volfrac :: U
+   phase2  :: U
+   volfrac :: V
+end
+
+struct MaxwellGarnett{T, U , V} <: OptProp
+   particle :: T
+   matrix   :: U
+   volfrac  :: V
 end
 
 # Dielectrics
@@ -127,4 +136,13 @@ function permittivity(material::Bruggeman,w) :: Complex128
     b    = ((3.0*material.volfrac-1.0)*(1.0/p - p)+p)/4.0
     z    = b+sqrt(b*b + 0.5)
     return transpose(z*sqrt(eps2)*sqrt(eps1))
+end
+
+function permittivity(material::MaxwellGarnett,w) :: Complex128
+    epsm = permittivity(material.matrix,w)
+    epsp = permittivity(material.particle,w)
+    f    = material.volfrac
+    num  = 3.0*epsm + (1.0 + 2.0*f)*(epsp - epsm)
+    den  = 3.0*epsm + (1.0 - f)*(epsp - epsm)
+    return epsm*num/den
 end
