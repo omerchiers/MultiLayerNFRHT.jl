@@ -20,7 +20,7 @@ end
 """
 Planck's Distribution using the definition :
 ```math
-q_{\\omega}^{\\text{BB}} =  \\Theta(\\omega,T) \\frac{k_0^2}{4π^2}
+q_{\omega}^{\text{BB}} =  \Theta(\omega,T) \frac{k_0^2}{4\pi^2}
 ```
 """
 function planck(w,T)
