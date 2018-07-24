@@ -40,7 +40,7 @@ function wien(T)
 end
 
 " Inverse of Wien law : return the temperature for a given frequency"
-function wieninv(w)
+function invwien(w)
     return   w*ħ/(2.8214393721220787*kb)
 end
 
