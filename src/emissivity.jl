@@ -39,6 +39,11 @@ function wien(T)
     return   2.8214393721220787*kb*T/ħ
 end
 
+" Inverse of Wien law : return the temperature for a given frequency"
+function wieninv(w)
+    return   w*ħ/(2.8214393721220787*kb)
+end
+
 " Unit conversion from rad/s to wavelength in m"
 unitconv(w) = 2.0*pi*c0/w
 
