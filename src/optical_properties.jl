@@ -56,7 +56,8 @@ struct Cst <: OptProp
 end
 Cst() = Cst(1.0+im*0.0)
 
-
+# Skin depth
+skin_depth(material :: OptProp , w ) = c0/imag(sqrt(permittivity(material,w)))/w
 
 """
     permittivity(material,w)
