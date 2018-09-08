@@ -125,6 +125,18 @@ function heat_transfer2(field :: TotalField ,b1 :: LayerOrMultiLayer, b2 :: Laye
 
 end
 
+function total_heat_transfer_w(b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, gap :: Layer, T1,T2,w;tolkx=1e-6,tolw=1e-6)
+    valt = 0.0
+    cnt  = 0
+    q    = zeros(Float64,5)
+    for f in [ Evanescent(), Propagative()]
+        for p in [te(),tm()]
+            cnt += 1
+            valt  += heat_transfer_w(f ,b1 ,b2, gap ,p ,w, T1,T2;toler=tolkx)
+         end
+    end
+    return valt
+end
 
 "Total net heat transfer"
 function total_heat_transfer(b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, gap :: Layer, T1,T2;tolkx=1e-6,tolw=1e-6)
