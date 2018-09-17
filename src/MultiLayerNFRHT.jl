@@ -14,7 +14,7 @@ export bose_einstein,wien,farfield_transfer,
        heat_transfer,heat_transfer_w,
        total_heat_transfer,total_heat_transfer_w,
        rt,planck,planck_fraction,
-       kspp,skin_depth,
+       kspp,skin_depth,refractive_index,
        unitconv,
        trapz
 
