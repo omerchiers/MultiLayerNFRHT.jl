@@ -56,11 +56,13 @@ struct Cst <: OptProp
 end
 Cst() = Cst(1.0+im*0.0)
 
+# Refractive index
+refractive_index(material :: OptProp, w) = sqrt(permittivity(material,w))
+
 # Skin depth
 skin_depth(material :: OptProp , w ) = c0/imag(refractive_index(material,w))/w
 
-# Refractive index
-refractive_index(material :: OptProp, w) = sqrt(permittivity(material,w))
+
 
 """
     permittivity(material,w)
