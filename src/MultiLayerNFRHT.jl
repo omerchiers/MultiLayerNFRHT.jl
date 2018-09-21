@@ -1,7 +1,7 @@
 module MultiLayerNFRHT
 
 # Dependencies
-using Cubature, Roots
+using Cubature, Roots, MyPhysicalConstants
 
 
 # export functions
@@ -25,11 +25,6 @@ export OptProp,Model,Bulk,Layer,MultiLayer,
        BulkOrMultiLayer,LayerOrMultiLayer
 
 
-# export constants
-export ħ, kb, c0,sigma,vf_au
-
-
-include("physical_constants.jl")
 include("optical_properties.jl")
 include("rt_coefficients.jl")
 include("emissivity.jl")
