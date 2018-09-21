@@ -1,8 +1,8 @@
 module MultiLayerNFRHT
 
 # Dependencies
-using Cubature, Roots, MyPhysicalConstants
-
+using Cubature, Roots, Reexport
+    @reexport using MyPhysicalConstants
 
 # export functions
 export bose_einstein,wien,farfield_transfer,
