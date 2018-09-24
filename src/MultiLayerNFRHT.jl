@@ -3,6 +3,8 @@ module MultiLayerNFRHT
 # Dependencies
 using Cubature, Roots, Reexport
     @reexport using MyPhysicalConstants
+    @reexport using OpticalProperties
+
 
 # export functions
 export bose_einstein,wien,farfield_transfer,
@@ -14,18 +16,17 @@ export bose_einstein,wien,farfield_transfer,
        heat_transfer,heat_transfer_w,
        total_heat_transfer,total_heat_transfer_w,
        rt,planck,planck_fraction,
-       kspp,skin_depth,refractive_index,
+       kspp,
        unitconv,
        trapz
 
 # export types
-export OptProp,Model,Bulk,Layer,MultiLayer,
+export Structure,Bulk,Layer,MultiLayer,
        TotalField,Evanescent,Propagative,
        Polarization,te,tm,
        BulkOrMultiLayer,LayerOrMultiLayer
 
 
-include("optical_properties.jl")
 include("rt_coefficients.jl")
 include("emissivity.jl")
 include("heat_transfer.jl")
