@@ -7,9 +7,10 @@ using Cubature, Roots, Reexport
 
 
 # export functions
-export bose_einstein,wien,farfield_transfer,
+export bose_einstein,wien,lambda_wien,farfield_transfer,
        emissivity_kx_w,emissivity_w,emissivity,
-       transmission_kx_w,transmission_w,
+       transmission_kx_w,transmission_w,total_transmission_kx_w,
+       total_transmission_map,
        compute_kz,compute_kx,
        heat_flux,heat_flux2,heat_flux_w,heat_flux_integrand,
        heat_flux_integrand,heat_transfer2,
