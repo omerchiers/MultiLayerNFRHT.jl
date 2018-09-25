@@ -47,6 +47,9 @@ end
 " Unit conversion from rad/s to wavelength in m"
 unitconv(w) = 2.0*pi*c0/w
 
+" Wien's wavelength obtained from wien's law in m"
+lambda_wien(T) = 2.8977729e-3/T
+
 
 function emissivity_kx_w(structure :: BulkOrMultiLayer, kx, w)
 
