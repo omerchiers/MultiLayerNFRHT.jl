@@ -150,6 +150,7 @@ function total_heat_transfer(b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, g
             ht2(u) = ht(u*kb/ħ)
             ht3(t) = ht2(t/(1.0-t))/(1.0-t)^2
             (val,err) = hquadrature(ht3, 0.0 , 1.0 ; reltol=tolw, abstol=0, maxevals=0)
+        #    (val,err) = quadgk(ht3, 0.0 , 1.0 ; rtol=tolw)
             valt  += val
             q[cnt] = val*kb/ħ
          end
@@ -180,9 +181,28 @@ function total_heat_transfer(b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, g
     return q
 end
 
-# total_heat_transfer(spectrum :: FrequencyRange,
-#                     b1 :: LayerOrMultiLayer,
-#                     b2 :: LayerOrMultiLayer,
-#                     gap :: Layer,
-#                     T1,T2;tolkx=1e-6,tolw=1e-6)
-# = total_heat_transfer(b1 ,b2, gap ,T1,T2,0.1*wien(min(T1,T2)),10.0*wien(max(T1,T2));tolkx=1e-6,tolw=1e-6)
+
+function total_transmission_kx_w(b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, gap :: Layer, kx, w)
+    valt = 0.0
+    for p in [te(),tm()]
+        if kx <= w/c0
+            valt += transmission_kx_w(Propagative(), b1, b2 , gap  ,p , kx ,w)
+        else
+            valt += transmission_kx_w(Evanescent(), b1, b2 , gap  ,p , kx ,w)
+        end
+    end
+    return valt
+end
+
+
+function total_transmission_map(b1 :: LayerOrMultiLayer,
+                                b2 :: LayerOrMultiLayer,
+                                gap :: Layer,
+                                kx :: AbstractArray, w :: AbstractArray)
+                                
+    t = zeros(length(w),length(kx))
+    for i=1:length(w)
+        t[i,:] = total_transmission_kx_w.(b1,b2,gap,kx,w[i])
+    end
+    return t
+end
