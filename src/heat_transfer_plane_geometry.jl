@@ -52,11 +52,10 @@ function transmission_w(field :: Evanescent ,b1 :: LayerOrMultiLayer, b2 :: Laye
 
     t_kx_w(kx)  = kx*transmission_kx_w(field ,b1,b2,gap,pol,kx,w)
     t2_kx_w(u)  = t_kx_w(u*w/c0)
-    t3_kx_w(v)  = t2_kx_w(1.0 + v/(1.0-v))/(1.0-v)^2
+    t3_kx_w(v)  = t2_kx_w(1 + v/(1-v))/(1-v)^2
 
-    val :: Float64  = 0.0
-    err :: Float64  = 0.0
-   (val,err) = hquadrature(t3_kx_w, 0.0 , 1.0 ; reltol=tol, abstol=0, maxevals=0)
+   (val,err) = hquadrature(t3_kx_w, 0 , 1 ; reltol=tol, abstol=0, maxevals=0)
+   (val,err) = quadgk(t3_kx_w, 0,1; rtol=tol)
     return val*(w/c0)
 end
 
@@ -64,9 +63,7 @@ function transmission_w(field :: Propagative ,b1 :: LayerOrMultiLayer, b2 :: Lay
     t_kx_w(kx)  = kx*transmission_kx_w(field ,b1,b2,gap,pol,kx,w)
     t2_kx_w(u)  = t_kx_w(u*w/c0)
 
-    val :: Float64  = 0.0
-    err :: Float64  = 0.0
-    (val,err) = hquadrature(t2_kx_w, 0.0 , 1.0 ; reltol=tol, abstol=0, maxevals=0)
+    (val,err) = quadgk(t2_kx_w, 0,1; rtol=tol)
     return val*(w/c0)
 end
 
@@ -148,9 +145,8 @@ function total_heat_transfer(b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, g
             cnt  += 1
             ht(w) = heat_transfer_w(f ,b1 ,b2, gap ,p ,w, T1,T2;toler=tolkx)
             ht2(u) = ht(u*kb/ħ)
-            ht3(t) = ht2(t/(1.0-t))/(1.0-t)^2
-            (val,err) = hquadrature(ht3, 0.0 , 1.0 ; reltol=tolw, abstol=0, maxevals=0)
-        #    (val,err) = quadgk(ht3, 0.0 , 1.0 ; rtol=tolw)
+            ht3(t) = ht2(t/(1-t))/(1-t)^2
+            (val,err) = quadgk(ht3, 0 , 1 ; rtol=tolw)
             valt  += val
             q[cnt] = val*kb/ħ
          end
@@ -171,7 +167,7 @@ function total_heat_transfer(b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, g
             cnt  += 1
             ht(w) = heat_transfer_w(f ,b1 ,b2, gap ,p ,w, T1,T2;toler=tolkx)
             ht2(u) = ht(u*kb/ħ)
-            (val,err) = hquadrature(ht2, u1 , u2 ; reltol=tolw, abstol=0, maxevals=0)
+            (val,err) = quadgk(ht2, u1 , u2 ; rtol=tolw)
             valt  += val
             q[cnt] = val*kb/ħ
          end
@@ -199,7 +195,7 @@ function total_transmission_map(b1 :: LayerOrMultiLayer,
                                 b2 :: LayerOrMultiLayer,
                                 gap :: Layer,
                                 kx :: AbstractArray, w :: AbstractArray)
-                                
+
     t = zeros(length(w),length(kx))
     for i=1:length(w)
         t[i,:] = total_transmission_kx_w.(b1,b2,gap,kx,w[i])
