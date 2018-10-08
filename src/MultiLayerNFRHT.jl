@@ -1,7 +1,7 @@
 module MultiLayerNFRHT
 
 # Dependencies
-using Cubature, Roots, Reexport
+using QuadGK, Roots, Reexport
     @reexport using MyPhysicalConstants
     @reexport using OpticalProperties
 
