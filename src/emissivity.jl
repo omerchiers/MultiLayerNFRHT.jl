@@ -30,7 +30,7 @@ end
 " Computes the fraction of the blackbody spectrum "
 function planck_fraction(w1,w2,T)
   pl(w) = planck(w,T)
-  (val, err) = hquadrature(pl, w1, w2 ;reltol=1e-8, abstol=0, maxevals=0)
+  (val, err) = quadgk(pl, w1, w2 ;rtol=1e-8)
   return val/sigma/T^4
 end
 
@@ -69,7 +69,7 @@ function emissivity_w(structure :: BulkOrMultiLayer, w)
 
     val :: Float64  = 0.0
     err :: Float64  = 0.0
-    (val,err) = hquadrature(e_kx, 0.0, w/c0 ; reltol=1e-8, abstol=0, maxevals=0)
+    (val,err) = quadgk(e_kx, 0.0, w/c0 ; rtol=1e-8)
 
     return val/(w/c0)^2
 end
@@ -81,7 +81,7 @@ function emissivity(structure :: BulkOrMultiLayer,T)
 
     val :: Float64  = 0.0
     err :: Float64  = 0.0
-    (val,err) = hquadrature(e2, 0.0, 1.0 ; reltol=1e-8, abstol=0, maxevals=0)
+    (val,err) = quadgk(e2, 0.0, 1.0 ; rtol=1e-8)
 
     return val*kb^4/ħ^3/c0^2/(2.0*pi)^2/sigma
 end
@@ -90,7 +90,7 @@ function emissivity(structure :: BulkOrMultiLayer,T,wi,wf)
     e(u) = emissivity_w(structure, u*kb*T/ħ)*u^3/(exp(u)-1.0)
     val :: Float64  = 0.0
     err :: Float64  = 0.0
-    (val,err) = hquadrature(e, wi*ħ/kb/T , wf*ħ/kb/T ; reltol=1e-8, abstol=0, maxevals=0)
+    (val,err) = quadgk(e, wi*ħ/kb/T , wf*ħ/kb/T ; rtol=1e-8)
 
     return val*kb^4/ħ^3/c0^2/(2.0*pi)^2/sigma
 end
