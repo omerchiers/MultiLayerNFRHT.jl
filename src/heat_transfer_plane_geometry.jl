@@ -54,7 +54,7 @@ function transmission_w(field :: Evanescent ,b1 :: LayerOrMultiLayer, b2 :: Laye
     t2_kx_w(u)  = t_kx_w(u*w/c0)
     t3_kx_w(v)  = t2_kx_w(1 + v/(1-v))/(1-v)^2
 
-   (val,err) = quadgk(t3_kx_w, 0,1; reltol=tol)
+   (val,err) = quadgk(t3_kx_w, 0,1; rtol=tol)
     return val*(w/c0)
 end
 
@@ -62,7 +62,7 @@ function transmission_w(field :: Propagative ,b1 :: LayerOrMultiLayer, b2 :: Lay
     t_kx_w(kx)  = kx*transmission_kx_w(field ,b1,b2,gap,pol,kx,w)
     t2_kx_w(u)  = t_kx_w(u*w/c0)
 
-    (val,err) = quadgk(t2_kx_w, 0,1; reltol=tol)
+    (val,err) = quadgk(t2_kx_w, 0,1; rtol=tol)
     return val*(w/c0)
 end
 
@@ -82,7 +82,7 @@ function heat_flux(field :: TotalField ,b1 :: LayerOrMultiLayer, b2 :: LayerOrMu
 
     val :: Float64  = 0.0
     err :: Float64  = 0.0
-    (val,err) = hquadrature(q1_w, u1 , u2 ; reltol=tol2, abstol=0, maxevals=0)
+    (val,err) = quadgk(q1_w, u1 , u2 ; rtol=tol2)
 
     return val*(kb*T)/ħ
 end
@@ -116,7 +116,7 @@ function heat_transfer2(field :: TotalField ,b1 :: LayerOrMultiLayer, b2 :: Laye
         return v
     end
 
-    (val,err) = hquadrature(2,q_w, 0.0 , 1.0 ; reltol=tol2, abstol=1e-8, maxevals=0)
+    (val,err) = quadgk(2,q_w, 0.0 , 1.0 ; rtol=tol2, atol=1e-8)
     return val[1]*(kb*T1)^2/ħ/4.0/pi^2-val[2]*(kb*T2)^2/ħ/4.0/pi^2
 
 end
@@ -145,7 +145,7 @@ function total_heat_transfer(b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, g
             ht(w) = heat_transfer_w(f ,b1 ,b2, gap ,p ,w, T1,T2;toler=tolkx)
             ht2(u) = ht(u*kb/ħ)
             ht3(t) = ht2(t/(1-t))/(1-t)^2
-            (val,err) = quadgk(ht3, 0 , 1 , reltol=tolw)
+            (val,err) = quadgk(ht3, 0 , 1 , rtol=tolw)
             valt  += val
             q[cnt] = val*kb/ħ
          end
@@ -166,7 +166,7 @@ function total_heat_transfer(b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, g
             cnt  += 1
             ht(w) = heat_transfer_w(f ,b1 ,b2, gap ,p ,w, T1,T2;toler=tolkx)
             ht2(u) = ht(u*kb/ħ)
-            (val,err) = quadgk(ht2, u1 , u2 ; reltol=tolw)
+            (val,err) = quadgk(ht2, u1 , u2 ; rtol=tolw)
             valt  += val
             q[cnt] = val*kb/ħ
          end
