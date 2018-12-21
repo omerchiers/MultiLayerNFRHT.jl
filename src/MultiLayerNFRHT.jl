@@ -10,7 +10,7 @@ using QuadGK, Roots, Reexport
 
 # export functions
 export bose_einstein,wien,lambda_wien,farfield_transfer,
-       emissivity_kx_w,emissivity_w,emissivity,
+       emissivity_kx_w,emissivity_w,emissivity,emissivity_fraction,
        transmission_kx_w,transmission_w,total_transmission_kx_w,
        total_transmission_map,
        compute_kz,compute_kx,
