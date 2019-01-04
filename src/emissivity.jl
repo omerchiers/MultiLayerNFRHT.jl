@@ -20,7 +20,7 @@ end
 """
 Planck's Distribution using the definition :
 ```math
-q_{\omega}^{\text{BB}} =  \Theta(\omega,T) \frac{k_0^2}{4\pi^2}
+q_{\\omega}^{\\text{BB}} =  \\Theta(\\omega,T) \\frac{k_0^2}{4\\pi^2}
 ```
 """
 function planck(w,T)
@@ -95,6 +95,6 @@ function emissivity(structure :: BulkOrMultiLayer,T,wi,wf)
     return val*kb^4/ħ^3/c0^2/(2.0*pi)^2/sigma
 end
 
-function emissivity_fraction(structure :: BulkOrMultiLayer,T,wi,wf) 
+function emissivity_fraction(structure :: BulkOrMultiLayer,T,wi,wf)
     return emissivity(structure,T,wi,wf)/planck_fraction(wi,wf,T)
 end
