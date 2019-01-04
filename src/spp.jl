@@ -5,7 +5,6 @@ kspp(eps1,eps2,w) = w/c0*sqrt(eps1*eps2/(eps1+eps2))
 
 
 " Dispersion relation for SPP modes on a film "
-
 function kk(kpar,eps,w)
     return sqrt(kpar^2 - eps*(w/c0)^2)
 end
