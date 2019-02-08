@@ -83,8 +83,8 @@ end
 
 function scattering_matrix!(S,structure :: MultiLayer, pol :: Polarization, kx, w)
         for i=2:length(structure)
-            eps1 :: Complex128 = permittivity(structure[i-1].material,w)
-            eps2 :: Complex128 = permittivity(structure[i].material,w)
+            eps1 :: Complex{Float64} = permittivity(structure[i-1].material,w)
+            eps2 :: Complex{Float64} = permittivity(structure[i].material,w)
             k0z   = compute_kz(kx,eps1,w)
             k2z   = compute_kz(kx,eps2,w)
             r,t = rt(pol, eps1,eps2, k0z,k2z,w)
