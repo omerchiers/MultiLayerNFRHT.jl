@@ -10,7 +10,7 @@ using QuadGK, Roots, Reexport
 
 # export functions
 export bose_einstein,wien,lambda_wien,farfield_transfer,
-       emissivity_kx_w,emissivity_w,emissivity,emissivity_fraction,
+       emissivity_kx_w,emissivity_kx,emissivity_w,emissivity,emissivity_fraction,
        transmission_kx_w,transmission_w,total_transmission_kx_w,
        total_transmission_map,
        compute_kz,compute_kx,
@@ -24,7 +24,7 @@ export bose_einstein,wien,lambda_wien,farfield_transfer,
        trapz
 
 # export types
-export Structure,Bulk,Layer,MultiLayer,
+export Structure,Bulk,Layer,MultiLayer,ML,
        TotalField,Evanescent,Propagative,
        Polarization,te,tm,
        BulkOrMultiLayer,LayerOrMultiLayer
