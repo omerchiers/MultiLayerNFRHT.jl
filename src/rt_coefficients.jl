@@ -23,7 +23,6 @@ Layer(material)  = Layer(material,0.0)
 
 # new Vector type
 const MultiLayer = Vector{Layer}
-const ML = Tuple
 
 function compute_kz(kx,eps,w)
     sqrt(eps*(w/c0)^2 - kx*kx)
