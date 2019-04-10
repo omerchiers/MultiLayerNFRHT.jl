@@ -15,15 +15,15 @@ end
 # Outer constructor for the Bulk type when one medium is vacuum
 Bulk(ep2) = Bulk(Cst(1.0+im*0.0),ep2)
 
-struct Layer <: Structure
-    material  :: OptProp
+struct Layer{T <: OptProp} <: Structure
+    material  :: T
     thickness :: Float64 # in meter. For semi-infinite media thickness = 0
 end
 Layer(material)  = Layer(material,0.0)
 
 # new Vector type
 const MultiLayer = Vector{Layer}
-
+const ML = Tuple
 
 function compute_kz(kx,eps,w)
     sqrt(eps*(w/c0)^2 - kx*kx)
@@ -89,10 +89,10 @@ function scattering_matrix!(S,structure :: MultiLayer, pol :: Polarization, kx, 
             k2z   = compute_kz(kx,eps2,w)
             r,t = rt(pol, eps1,eps2, k0z,k2z,w)
 
-            S[1,1] =(S[1,1]*t*exp(im*structure[i-1].thickness*k0z))/(1.0+0.0*im - S[1,2]*r*exp(2.0*im*structure[i-1].thickness*k0z))
-            S[1,2] =(S[1,2]*exp(2.0*im*structure[i-1].thickness*k0z)-r)/(1.0+0.0*im - S[1,2]*r*exp(2.0*im*structure[i-1].thickness*k0z))
-            S[2,1] =(S[1,1]*S[2,2]*r*exp(im*structure[i-1].thickness*k0z))/t+S[2,1]
-            S[2,2] =(S[2,2]*exp(im*structure[i-1].thickness*k0z)*(r*S[1,2] + 1.0+0.0*im))/t
+             S[1,1] =(S[1,1]*t*exp(im*structure[i-1].thickness*k0z))/(1.0+0.0*im - S[1,2]*r*exp(2.0*im*structure[i-1].thickness*k0z))
+             S[1,2] =(S[1,2]*exp(2.0*im*structure[i-1].thickness*k0z)-r)/(1.0+0.0*im - S[1,2]*r*exp(2.0*im*structure[i-1].thickness*k0z))
+             S[2,1] =(S[1,1]*S[2,2]*r*exp(im*structure[i-1].thickness*k0z))/t+S[2,1]
+             S[2,2] =(S[2,2]*exp(im*structure[i-1].thickness*k0z)*(r*S[1,2] + 1.0+0.0*im))/t
         end
     return nothing
 end
