@@ -50,7 +50,7 @@ unitconv(w) = 2.0*pi*c0/w
 " Wien's wavelength obtained from wien's law in m"
 lambda_wien(T) = 2.8977729e-3/T
 
-
+"Monocromatic directional emissivity"
 function emissivity_kx_w(structure :: BulkOrMultiLayer, kx, w)
 
     (rte,t)=rt(structure, te(),kx,w)
@@ -60,10 +60,21 @@ function emissivity_kx_w(structure :: BulkOrMultiLayer, kx, w)
     integr2 = 1.0-abs(rtm)^2
 
     return integr1+integr2
-
 end
 
-" Monocromatic emissivity"
+
+"Total directional emissivity"
+function emissivity_kx(structure :: BulkOrMultiLayer, kx, wi,wf)
+
+    e(u) = emissivity_kx_w(structure, u*kb*T/ħ)*u^3/(exp(u)-1.0)
+    val :: Float64  = 0.0
+    err :: Float64  = 0.0
+    (val,err) = quadgk(e, wi*ħ/kb/T , wf*ħ/kb/T ; rtol=1e-8)
+
+    return val*kb^4/ħ^3/c0^2/(2.0*pi)^2/sigma
+end
+
+" Monocromatic hemispherical emissivity"
 function emissivity_w(structure :: BulkOrMultiLayer, w)
     e_kx(kx) = kx*emissivity_kx_w(structure ,kx, w)
 
@@ -74,7 +85,7 @@ function emissivity_w(structure :: BulkOrMultiLayer, w)
     return val/(w/c0)^2
 end
 
-
+" total hemispherical emissivity"
 function emissivity(structure :: BulkOrMultiLayer,T)
     e(u) = emissivity_w(structure, u*kb*T/ħ)*u^3/(exp(u)-1.0)
     e2(t) = e(t/(1.0-t))/(1.0-t)^2
@@ -86,6 +97,7 @@ function emissivity(structure :: BulkOrMultiLayer,T)
     return val*kb^4/ħ^3/c0^2/(2.0*pi)^2/sigma
 end
 
+" total hemispherical emissivity with integration bounds for frequency"
 function emissivity(structure :: BulkOrMultiLayer,T,wi,wf)
     e(u) = emissivity_w(structure, u*kb*T/ħ)*u^3/(exp(u)-1.0)
     val :: Float64  = 0.0
