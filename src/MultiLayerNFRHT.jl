@@ -24,7 +24,7 @@ export bose_einstein,wien,lambda_wien,farfield_transfer,
        trapz
 
 # export types
-export Structure,Bulk,Layer,MultiLayer,ML,
+export Structure,Bulk,Layer,MultiLayer,
        TotalField,Evanescent,Propagative,
        Polarization,te,tm,
        BulkOrMultiLayer,LayerOrMultiLayer
