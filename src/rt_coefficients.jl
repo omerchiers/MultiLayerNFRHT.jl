@@ -15,8 +15,8 @@ end
 # Outer constructor for the Bulk type when one medium is vacuum
 Bulk(ep2) = Bulk(Cst(1.0+im*0.0),ep2)
 
-struct Layer{T <: OptProp} <: Structure
-    material  :: T
+struct Layer <: Structure
+    material  :: OptProp
     thickness :: Float64 # in meter. For semi-infinite media thickness = 0
 end
 Layer(material)  = Layer(material,0.0)
