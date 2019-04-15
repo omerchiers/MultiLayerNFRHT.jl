@@ -161,7 +161,7 @@ function total_heat_transfer(b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, g
     q    = zeros(Float64,5)
     u1 = w1*ħ/kb
     u2 = w2*ħ/kb
-    for f in (,Propagative())
+    for f in [Evanescent(),Propagative()]
         for p in (te(),tm())
             cnt  += 1
             ht(w) = heat_transfer_w(f ,b1 ,b2, gap ,p ,w, T1,T2;toler=tolkx)
@@ -182,7 +182,7 @@ function total_heat_transfer_double(b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiL
     q    = zeros(Float64,5)
     u1 = w1*ħ/kb
     u2 = w2*ħ/kb
-    for f in (,Propagative())
+    for f in [Propagative()]
         for p in (te(),tm())
             cnt  += 1
             integr(x) = (bose_einstein(x[1]*kb/ħ,T1) - bose_einstein(x[1]*kb/ħ,T2))*x[2]*x[1]^2*transmission_kx_w(f ,b1,b2,gap,p,x[2]*x[1]*kb/ħ/c0,x[1]*kb/ħ)
