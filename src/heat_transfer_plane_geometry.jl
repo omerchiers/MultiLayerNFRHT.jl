@@ -87,11 +87,6 @@ function heat_flux(field :: TotalField ,b1 :: LayerOrMultiLayer, b2 :: LayerOrMu
     return val*(kb*T)/ħ
 end
 
-function heat_flux_integrand(field :: TotalField ,b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, gap :: Layer ,pol :: Polarization , T,tol)
-    q_w(w)  = transmission_w(field,b1,b2,gap,pol,w,tol)
-    q2_w(u) = u*q_w(u*kb*T/ħ)/(exp(u)-1.0)
-    return q2_w
-end
 
 
 
@@ -105,21 +100,7 @@ function heat_transfer(field :: TotalField ,b1 :: LayerOrMultiLayer, b2 :: Layer
     return heat_flux(field,b1,b2,gap,pol,T2 ; tol1=tol1 , tol2=tol2) - heat_flux(field,b1,b2,gap,pol,T1 ; tol1=tol1 , tol2=tol2)
 end
 
-function heat_transfer2(field :: TotalField ,b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, gap :: Layer ,pol :: Polarization, T1,T2 ; tol1=1e-8,tol2=1e-8)
 
-    q1_w = heat_flux_integrand(field ,b1 , b2 , gap  ,pol , T1 , tol1)
-    q2_w = heat_flux_integrand(field ,b1 , b2 , gap  ,pol , T2 , tol1)
-
-    function q_w(t,v)
-        v[1] = q1_w(t)
-        v[2] = q2_w(t)
-        return v
-    end
-
-    (val,err) = quadgk(2,q_w, 0.0 , 1.0 ; rtol=tol2, atol=1e-8)
-    return val[1]*(kb*T1)^2/ħ/4.0/pi^2-val[2]*(kb*T2)^2/ħ/4.0/pi^2
-
-end
 
 function total_heat_transfer_w(b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, gap :: Layer, T1,T2,w;tolkx=1e-6,tolw=1e-6)
     valt = 0.0
@@ -176,7 +157,7 @@ function total_heat_transfer(b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, g
     return q
 end
 
-function total_heat_transfer_double(b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, gap :: Layer, T1,T2,w1,w2;tolkx=1e-6,tolw=1e-6)
+function total_heat_transfer_double(b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, gap :: Layer, T1,T2,w1,w2;tol=1e-6)
     valt = 0.0
     cnt  = 0
     q    = zeros(Float64,5)
@@ -185,7 +166,7 @@ function total_heat_transfer_double(b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiL
     for f in [Evanescent(), Propagative()]
         for p in (te(),tm())
             cnt  += 1
-            val = integrand_double(f, p, b1, b2, gap, T1,T2,w1,w2;tol=tolw)
+            val = integrand_double(f, p, b1, b2, gap, T1,T2,w1,w2;tol=tol)
             valt  += val
             q[cnt] = val*(kb/ħ)^3/c0^2/4.0/pi^2
          end
@@ -237,3 +218,8 @@ function total_transmission_map(b1 :: LayerOrMultiLayer,
     end
     return t
 end
+
+
+## New interface proposal
+heat_transfer(b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, gap :: Layer, T1,T2;field :: TotalField =nothing, pol::Polarization=nothing, kx=[] , w =[1e9 ,1e16] , tol = 1e-6) = total_heat_transfer_double(b1,b2,gap,T1,T2,w[1],w[2]; tol = tol)
+heat_transfer(b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, gap :: Layer, T1,T2; kx=[] , w =[1e9 ,1e16] , tol = 1e-6) = total_heat_transfer_double(b1,b2,gap,T1,T2,w[1],w[2]; tol = tol)
