@@ -161,8 +161,8 @@ function total_heat_transfer(b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, g
     q    = zeros(Float64,5)
     u1 = w1*ħ/kb
     u2 = w2*ħ/kb
-    for f in [ Evanescent(), Propagative()]
-        for p in [te(),tm()]
+    for f in (,Propagative())
+        for p in (te(),tm())
             cnt  += 1
             ht(w) = heat_transfer_w(f ,b1 ,b2, gap ,p ,w, T1,T2;toler=tolkx)
             ht2(u) = ht(u*kb/ħ)
@@ -176,6 +176,25 @@ function total_heat_transfer(b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, g
     return q
 end
 
+function total_heat_transfer_double(b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, gap :: Layer, T1,T2,w1,w2;tolkx=1e-6,tolw=1e-6)
+    valt = 0.0
+    cnt  = 0
+    q    = zeros(Float64,5)
+    u1 = w1*ħ/kb
+    u2 = w2*ħ/kb
+    for f in (,Propagative())
+        for p in (te(),tm())
+            cnt  += 1
+            integr(x) = (bose_einstein(x[1]*kb/ħ,T1) - bose_einstein(x[1]*kb/ħ,T2))*x[2]*x[1]^2*transmission_kx_w(f ,b1,b2,gap,p,x[2]*x[1]*kb/ħ/c0,x[1]*kb/ħ)
+            (val,err) = hcubature(integr,[u1,0.0],[u2,1.0]; rtol=tolw)
+            valt  += val
+            q[cnt] = val*(kb/ħ)^3/c0^2/4.0/pi^2
+         end
+    end
+    q[5]=valt*(kb/ħ)^3/c0^2/4.0/pi^2
+
+    return q
+end
 
 function total_transmission_kx_w(b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, gap :: Layer, kx, w)
     valt = 0.0
