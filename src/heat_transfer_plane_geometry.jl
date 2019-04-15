@@ -182,11 +182,10 @@ function total_heat_transfer_double(b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiL
     q    = zeros(Float64,5)
     u1 = w1*ħ/kb
     u2 = w2*ħ/kb
-    for f in [Propagative()]
+    for f in [Evanescent(), Propagative()]
         for p in (te(),tm())
             cnt  += 1
-            integr(x) = (bose_einstein(x[1]*kb/ħ,T1) - bose_einstein(x[1]*kb/ħ,T2))*x[2]*x[1]^2*transmission_kx_w(f ,b1,b2,gap,p,x[2]*x[1]*kb/ħ/c0,x[1]*kb/ħ)
-            (val,err) = hcubature(integr,[u1,0.0],[u2,1.0]; rtol=tolw)
+            val = integrand_double(f, p, b1, b2, gap, T1,T2,w1,w2;tol=tolw)
             valt  += val
             q[cnt] = val*(kb/ħ)^3/c0^2/4.0/pi^2
          end
@@ -195,6 +194,24 @@ function total_heat_transfer_double(b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiL
 
     return q
 end
+
+function integrand_double(field :: Propagative, pol :: Polarization, b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, gap :: Layer, T1,T2,w1,w2;tol=1e-6)
+    u1 = w1*ħ/kb
+    u2 = w2*ħ/kb
+    integr(x) = (bose_einstein(x[1]*kb/ħ,T1) - bose_einstein(x[1]*kb/ħ,T2))*x[2]*x[1]^2*transmission_kx_w(field ,b1,b2,gap,pol,x[2]*x[1]*kb/ħ/c0,x[1]*kb/ħ)
+    (val,err) = hcubature(integr,[u1,0.0],[u2,1.0]; rtol=tol)
+    return val
+end
+
+function integrand_double(field :: Evanescent, pol :: Polarization , b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, gap :: Layer, T1,T2,w1,w2;tol=1e-6)
+    u1 = w1*ħ/kb
+    u2 = w2*ħ/kb
+    integr(x)  = (bose_einstein(x[1]*kb/ħ,T1) - bose_einstein(x[1]*kb/ħ,T2))*x[2]*x[1]^2*transmission_kx_w(field ,b1,b2,gap,pol,x[2]*x[1]*kb/ħ/c0,x[1]*kb/ħ)
+    integr2(y) = integr([y[1],1 + y[2]/(1-y[2])])/(1-y[2])^2
+    (val,err)  = hcubature(integr2,[u1,0.0],[u2,1.0]; rtol=tol)
+    return val
+end
+
 
 function total_transmission_kx_w(b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, gap :: Layer, kx, w)
     valt = 0.0
