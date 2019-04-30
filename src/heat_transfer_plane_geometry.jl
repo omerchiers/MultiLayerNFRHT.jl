@@ -218,8 +218,3 @@ function total_transmission_map(b1 :: LayerOrMultiLayer,
     end
     return t
 end
-
-
-## New interface proposal
-heat_transfer(b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, gap :: Layer, T1,T2;field :: TotalField =nothing, pol::Polarization=nothing, kx=[] , w =[1e9 ,1e16] , tol = 1e-6) = total_heat_transfer_double(b1,b2,gap,T1,T2,w[1],w[2]; tol = tol)
-heat_transfer(b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, gap :: Layer, T1,T2; kx=[] , w =[1e9 ,1e16] , tol = 1e-6) = total_heat_transfer_double(b1,b2,gap,T1,T2,w[1],w[2]; tol = tol)
