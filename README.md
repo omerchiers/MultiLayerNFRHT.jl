@@ -13,7 +13,7 @@ The method uses the equation (Polder and Van Hove) for two bulk media but where 
 You need Julia version 0.7 or higher.
 
 To install on julia 0.7 or higher, enter the Pkg mode by typing ]
-and then when installing from github
+and then to install from github
 
 ```julia
 (v1.0)> add https://github.com/omerchiers/MyPhysicalConstants.jl
