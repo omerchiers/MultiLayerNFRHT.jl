@@ -3,7 +3,7 @@ __precompile__(false)
 module MultiLayerNFRHT
 
 # Dependencies
-using QuadGK, Roots, Reexport
+using QuadGK, Roots, Reexport,HCubature
     @reexport using MyPhysicalConstants
     @reexport using OpticalProperties
 
@@ -17,7 +17,7 @@ export bose_einstein,wien,lambda_wien,farfield_transfer,
        heat_flux,heat_flux2,heat_flux_w,heat_flux_integrand,
        heat_flux_integrand,heat_transfer2,
        heat_transfer,heat_transfer_w,
-       total_heat_transfer,total_heat_transfer_w,
+       total_heat_transfer,total_heat_transfer_double,total_heat_transfer_w,
        rt,planck,planck_fraction,
        kspp,
        unitconv,
