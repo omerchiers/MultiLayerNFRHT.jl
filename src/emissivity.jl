@@ -64,9 +64,9 @@ end
 
 
 "Total directional emissivity"
-function emissivity_kx(structure :: BulkOrMultiLayer, kx, wi,wf)
+function emissivity_kx(structure :: BulkOrMultiLayer,T, kx, wi,wf)
 
-    e(u) = emissivity_kx_w(structure, u*kb*T/ħ)*u^3/(exp(u)-1.0)
+    e(u) = emissivity_kx_w(structure, kx, u*kb*T/ħ)*u^3/(exp(u)-1.0)
     val :: Float64  = 0.0
     err :: Float64  = 0.0
     (val,err) = quadgk(e, wi*ħ/kb/T , wf*ħ/kb/T ; rtol=1e-8)
@@ -108,5 +108,5 @@ function emissivity(structure :: BulkOrMultiLayer,T,wi,wf)
 end
 
 function emissivity_fraction(structure :: BulkOrMultiLayer,T,wi,wf)
-    return emissivity(structure,T,wi,wf)/planck_fraction(wi,wf,T)
+    return emissivity_kx(structure,T,0.0,wi,wf)/planck_fraction(wi,wf,T)
 end
