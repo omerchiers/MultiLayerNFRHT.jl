@@ -1,5 +1,7 @@
+.gitignore
 *.jl.cov
 *.jl.*.cov
 *.jl.mem
 test/test_results/*
 *~
+Manifest.toml
