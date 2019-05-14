@@ -30,6 +30,17 @@ end
 # new Vector type
 const MultiLayer = Vector{Layer}
 
+# Union types
+const LayerOrMultiLayer = Union{Layer,MultiLayer}
+
+# Accessor functions
+substrate(structure :: Bulk) = Layer(structure.ep2)
+substrate(structure :: MultiLayer) = structure[end]
+substrate(structure :: Film) = structure.substrate
+
+OpticalProperties.permittivity(layer::Layer,w) = permittivity(layer.material,w)
+
+
 function compute_kz(kx,eps,w)
     sqrt(eps*(w/c0)^2 - kx*kx)
 end
