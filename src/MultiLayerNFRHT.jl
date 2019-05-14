@@ -23,10 +23,10 @@ export bose_einstein,wien,lambda_wien,farfield_transfer,
        trapz
 
 # export types
-export Structure,Bulk,Layer,MultiLayer,
+export Structure,Bulk,Layer,MultiLayer,Film,
+       LayerOrMultiLayer,
        TotalField,Evanescent,Propagative,
-       Polarization,te,tm,
-       BulkOrMultiLayer,LayerOrMultiLayer
+       Polarization,te,tm
 
 
 include("rt_coefficients.jl")
