@@ -1,8 +1,7 @@
 # This file contains the functions to compute the emissivities of bulks and multilayers
 
 
-BulkOrMultiLayer = Union{Layer,Bulk,MultiLayer}
-LayerOrMultiLayer = Union{Layer,MultiLayer}
+
 
 # Factors
 function bose_einstein(w,T)
