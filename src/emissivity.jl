@@ -1,8 +1,6 @@
 # This file contains the functions to compute the emissivities of bulks and multilayers
 
 
-
-
 # Factors
 function bose_einstein(w,T)
     u = w*ħ/kb/T
@@ -56,6 +54,9 @@ function emissivity_kx_w(structure, kx, w; semitransparent = false)
     (rtm,ttm)=rt(structure, tm(),kx,w)
 
     if semitransparent == true
+        if imag(permittivity(substrate(structure),w)) != 0.0
+            error("Substrate should be transparant")
+        end
         (Rte,Tte)=power_rt(structure, te(), kx ,w)
         (Rtm,Ttm)=power_rt(structure, tm(), kx ,w)
         integr1 = 1.0 - Rte - Tte
