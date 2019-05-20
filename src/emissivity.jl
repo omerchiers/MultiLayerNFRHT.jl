@@ -50,18 +50,15 @@ lambda_wien(T) = 2.8977729e-3/T
 "Monocromatic directional emissivity"
 function emissivity_kx_w(structure, kx, w)
 
-    (rte,tte)=rt(structure, te(),kx,w)
-    (rtm,ttm)=rt(structure, tm(),kx,w)
-
+    (Rte,Tte)=power_rt(structure, te(), kx ,w)
+    (Rtm,Ttm)=power_rt(structure, tm(), kx ,w)
 
     if imag(permittivity(substrate(structure),w)) == 0.0
-        (Rte,Tte)=power_rt(structure, te(), kx ,w)
-        (Rtm,Ttm)=power_rt(structure, tm(), kx ,w)
         integr1 = 1.0 - Rte - Tte
         integr2 = 1.0 - Rtm - Ttm
     else
-        integr1 = 1.0 - abs(rte)^2
-        integr2 = 1.0 - abs(rtm)^2
+        integr1 = 1.0 - Rte
+        integr2 = 1.0 - Rtm
     end
 
     return integr1 + integr2
