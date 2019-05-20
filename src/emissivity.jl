@@ -48,15 +48,13 @@ unitconv(w) = 2.0*pi*c0/w
 lambda_wien(T) = 2.8977729e-3/T
 
 "Monocromatic directional emissivity"
-function emissivity_kx_w(structure, kx, w; semitransparent = false)
+function emissivity_kx_w(structure, kx, w)
 
     (rte,tte)=rt(structure, te(),kx,w)
     (rtm,ttm)=rt(structure, tm(),kx,w)
 
-    if semitransparent == true
-        if imag(permittivity(substrate(structure),w)) != 0.0
-            error("Substrate should be transparant")
-        end
+
+    if imag(permittivity(substrate(structure),w)) == 0.0
         (Rte,Tte)=power_rt(structure, te(), kx ,w)
         (Rtm,Ttm)=power_rt(structure, tm(), kx ,w)
         integr1 = 1.0 - Rte - Tte
@@ -72,9 +70,9 @@ end
 
 
 "Total directional emissivity"
-function emissivity_kx(structure,T, kx, wi,wf; rtol=1e-8,kwargs...)
+function emissivity_kx(structure,T, kx, wi,wf; rtol=1e-8)
 
-    e(u) = emissivity_kx_w(structure, kx, u*kb*T/ħ;kwargs...)*u^3/(exp(u)-1.0)
+    e(u) = emissivity_kx_w(structure, kx, u*kb*T/ħ)*u^3/(exp(u)-1.0)
     val :: Float64  = 0.0
     err :: Float64  = 0.0
     (val,err) = quadgk(e, wi*ħ/kb/T , wf*ħ/kb/T ; rtol=rtol)
@@ -83,8 +81,8 @@ function emissivity_kx(structure,T, kx, wi,wf; rtol=1e-8,kwargs...)
 end
 
 " Monocromatic hemispherical emissivity"
-function emissivity_w(structure, w; rtol = 1e-8, kwargs...)
-    e_kx(kx) = kx*emissivity_kx_w(structure ,kx, w;kwargs...)
+function emissivity_w(structure, w; rtol = 1e-8)
+    e_kx(kx) = kx*emissivity_kx_w(structure ,kx, w)
 
     val :: Float64  = 0.0
     err :: Float64  = 0.0
@@ -94,8 +92,8 @@ function emissivity_w(structure, w; rtol = 1e-8, kwargs...)
 end
 
 " total hemispherical emissivity"
-function emissivity(structure,T;kwargs...)
-    e(u) = emissivity_w(structure, u*kb*T/ħ;kwargs...)*u^3/(exp(u)-1.0)
+function emissivity(structure,T;rtol = 1e-8)
+    e(u) = emissivity_w(structure, u*kb*T/ħ;rtol = rtol)*u^3/(exp(u)-1.0)
     e2(t) = e(t/(1.0-t))/(1.0-t)^2
 
     val :: Float64  = 0.0
@@ -106,8 +104,8 @@ function emissivity(structure,T;kwargs...)
 end
 
 " total hemispherical emissivity with integration bounds for frequency"
-function emissivity(structure,T,wi,wf;kwargs...)
-    e(u) = emissivity_w(structure, u*kb*T/ħ;kwargs...)*u^3/(exp(u)-1.0)
+function emissivity(structure,T,wi,wf;rtol = 1e-8)
+    e(u) = emissivity_w(structure, u*kb*T/ħ; rtol = rtol)*u^3/(exp(u)-1.0)
     val :: Float64  = 0.0
     err :: Float64  = 0.0
     (val,err) = quadgk(e, wi*ħ/kb/T , wf*ħ/kb/T ; rtol=rtol)
@@ -115,6 +113,6 @@ function emissivity(structure,T,wi,wf;kwargs...)
     return val*kb^4/ħ^3/c0^2/(2.0*pi)^2/sigma
 end
 
-function emissivity_fraction(structure,T,wi,wf;kwargs...)
-    return emissivity_kx(structure,T,0.0,wi,wf;kwargs...)/planck_fraction(wi,wf,T)
+function emissivity_fraction(structure,T,wi,wf;rtol = 1e-8)
+    return emissivity_kx(structure,T,0.0,wi,wf;rtol = rtol)/planck_fraction(wi,wf,T)
 end
