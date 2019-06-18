@@ -34,14 +34,24 @@ function transmission_kx_w(:: Propagative, b1 :: LayerOrMultiLayer, b2 :: LayerO
     b1 = prepend!([b1;],[gap2])
     b2 = prepend!([b2;],[gap2])
 
-    (r_21,t) = rt(b1,pol,kx,w) :: Tuple{Complex{Float64},Complex{Float64}}
-    (r_23,t) = rt(b2,pol,kx,w) :: Tuple{Complex{Float64},Complex{Float64}}
+    T_21      = 0.0
+    T_23      = 0.0
+    (r_21,t_21)  = rt(b1,pol,kx,w) :: Tuple{Complex{Float64},Complex{Float64}}
+    (r_23,t_23)  = rt(b2,pol,kx,w) :: Tuple{Complex{Float64},Complex{Float64}}
 
     k2z = compute_kz(kx,permittivity(gap.material,w),w)  :: Complex{Float64}
     exp_val2 = exp(2.0*im*k2z*gap.thickness)             :: Complex{Float64}
 
+    if imag(permittivity(substrate(b1),w)) == 0.0
+        eps1,k1z,eps2,k2z = outer_media(b1,kx,w)
+        T_21 = power_t(pol,eps1,eps2, k1z,k2z,t_21)
+    end
+    if imag(permittivity(substrate(b2),w)) == 0.0
+        eps1,k1z,eps2,k2z = outer_media(b2,kx,w)
+        T_23 = power_t(pol,eps1,eps2, k1z,k2z,t_23)
+    end
 
-    return (1.0-abs(r_21)^2)*(1.0-abs(r_23)^2)/abs(1.0-r_21*r_23*exp_val2)^2
+    return (1.0 - abs(r_21)^2 - T_21)*(1.0 - abs(r_23)^2 - T_23)/abs(1.0-r_21*r_23*exp_val2)^2
 
 end
 
