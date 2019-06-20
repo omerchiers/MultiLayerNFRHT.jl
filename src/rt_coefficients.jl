@@ -38,8 +38,15 @@ substrate(structure :: Bulk) = Layer(structure.ep2)
 substrate(structure :: MultiLayer) = structure[end]
 substrate(structure :: Film) = structure.substrate
 
+top_medium(structure :: Bulk) = Layer(structure.ep1)
+top_medium(structure :: MultiLayer) = structure[1]
+top_medium(structure :: Film) = Layer(Cst())
+
 OpticalProperties.permittivity(layer::Layer,w) = permittivity(layer.material,w)
 
+
+
+# Normal functions
 
 function compute_kz(kx,eps,w)
     sqrt(eps*(w/c0)^2 - kx*kx)
@@ -51,6 +58,15 @@ end
 
 function compute_ang(kx,eps,w)
     asin(real(kx)/real(sqrt(eps))/(w/c0))
+end
+
+function outer_media(b,kx,w)
+    eps1 = permittivity(top_medium(b),w)
+    k1z  = compute_kz(kx,eps1,w)
+
+    eps2 = permittivity(substrate(b),w)
+    k2z  = compute_kz(kx,eps2,w)
+    return eps1,k1z,eps2,k2z
 end
 
 
@@ -93,19 +109,7 @@ function rt(structure :: Bulk, pol :: Polarization, kx ,w)
     return r, t
 end
 
-function power_rt(structure :: Bulk, pol :: Polarization, kx ,w)
-    eps1 = permittivity(structure.ep1,w)
-    eps2 = permittivity(structure.ep2,w)
 
-    k0z   = compute_kz(kx,eps1,w)
-    k2z   = compute_kz(kx,eps2,w)
-
-    r,t=rt(pol,eps1,eps2,k0z,k2z,w)
-    R = abs(r)^2
-    T = power_t(pol,eps1,eps2, k0z,k2z,t)
-
-    return R, T
-end
 
 # Fresnel coefficient of a multilayered semi-infinite medium : as a function of incidence angle and frequency
 
@@ -136,19 +140,7 @@ function scattering_matrix!(S,structure :: MultiLayer, pol :: Polarization, kx, 
     return nothing
 end
 
-function power_rt(structure :: MultiLayer, pol :: Polarization, kx ,w)
-    eps1 = permittivity(structure[1].material,w)
-    eps2 = permittivity(structure[end].material,w)
 
-    k0z   = compute_kz(kx,eps1,w)
-    k2z   = compute_kz(kx,eps2,w)
-
-    r,t=rt(structure,pol,kx,w)
-    R = abs(r)^2
-    T = power_t(pol,eps1,eps2, k0z,k2z,t)
-
-    return R, T
-end
 
 function rt(structure :: Film , pol :: Polarization , kx, w)
     filmmaterial      = structure.film.material
@@ -171,20 +163,15 @@ function rt(structure :: Film , pol :: Polarization , kx, w)
     return r,t
 end
 
-function power_rt(structure :: Film, pol :: Polarization, kx ,w)
-    filmmaterial      = structure.film.material
-    substratematerial = structure.substrate.material
 
-    eps0 = permittivity(Cst(),w)
-    eps2 = permittivity(substratematerial,w)
 
-    k0z = compute_kz(kx,eps0,w)
-    k2z = compute_kz(kx,eps2,w)
+function power_rt(structure, pol :: Polarization, kx ,w)
 
+    eps1,k1z,eps2,k2z = outer_media(structure,kx,w)
 
     r,t=rt(structure,pol,kx,w)
     R = abs(r)^2
-    T = power_t(pol,eps0,eps2, k0z,k2z,t)
+    T = power_t(pol,eps1,eps2, k1z,k2z,t)
 
     return R, T
 end

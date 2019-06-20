@@ -2,6 +2,15 @@
 
 
 # Factors
+"""
+    bose_einstein(w,T)
+
+Bose-Einstein factor using the definition:
+```math
+\\Theta(\\omega,T) = \\frac{\\hbar\\omega}{e^{\\frac{\\hbar\\omega}{k_B T}}-1}
+```
+
+"""
 function bose_einstein(w,T)
     u = w*ħ/kb/T
     if T==0
@@ -15,16 +24,27 @@ function bose_einstein(w,T)
 end
 
 """
-Planck's Distribution using the definition :
+    planck(w,T)
+
+Planck's Distribution using the definition:
+
 ```math
-q_{\\omega}^{\\text{BB}} =  \\Theta(\\omega,T) \\frac{k_0^2}{4\\pi^2}
+q^{\\text{BB}}(\\omega,T) =  \\Theta(\\omega,T) \\frac{k_0^2}{4\\pi^2}
 ```
 """
 function planck(w,T)
     return  bose_einstein(w,T)*(w/c0)^2/(2.0*pi)^2
 end
 
-" Computes the fraction of the blackbody spectrum "
+"""
+    planck_fraction(w1,w2,T)
+
+fraction of the energy between pulsations w1 and w2
+
+```math
+q^{\\text{BB}}(\\omega_1,\\omega_2,T) =  \\frac{1}{\\sigma T^4}\\int_{\\omega_1}^{\\omega_2}q^{\\text{BB}}(\\omega)d\\omega
+```
+"""
 function planck_fraction(w1,w2,T)
   pl(w) = planck(w,T)
   (val, err) = quadgk(pl, w1, w2 ;rtol=1e-8)
