@@ -1,6 +1,5 @@
 # This file contains the functions to compute the emissivities of bulks and multilayers
 
-
 # Factors
 """
     bose_einstein(w,T)
@@ -51,7 +50,12 @@ function planck_fraction(w1,w2,T)
   return val/sigma/T^4
 end
 
-" Wien frequency : return the frequency for which Planck distribution is maximum"
+"""
+    wien(T)
+
+Wien frequency: return the frequency for which Planck distribution is maximum.
+T is given in Kelvin and the result is given in radHz
+"""
 function wien(T)
     return   2.8214393721220787*kb*T/ħ
 end
