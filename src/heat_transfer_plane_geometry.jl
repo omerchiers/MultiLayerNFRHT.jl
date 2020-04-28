@@ -8,6 +8,81 @@ function farfield_transfer(em1 , em2, T1, T2)
 
 end
 
+"""
+    incoherent_total_heat_transfer_w(b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, gap :: Layer, T1,T2,w;tolkx=1e-6)
+
+compute the total monocromatic radiative heat flux between planar surfaces in the far field,
+considereing total incoherent radiation. This should only be considered correct (less than 5 % error) when the separation
+distance between both objects is larger than 100*λ_wien.
+
+#Arguments:
+- `b1 :: LayerOrMultiLayer`: Multilayer description of body 1
+- `b2 :: LayerOrMultiLayer`: Multilayer description of body 2
+- `gap :: Layer`: Material and thickness of gap separation
+- `T1`: temperature of body 1
+- `T2`: temperature of body 2
+- `w` : frequency in radHz
+- `tolkx = 1e-6`: relative error on integration over kx
+"""
+function incoherent_total_heat_transfer_w(b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, gap :: Layer, T1,T2,w;tolkx=1e-6)
+   l1 = lambda_wien(T1)
+   l2 = lambda_wien(T2)
+   @assert gap.thickness >= 100*max(l1,l2)  "the gap size should at least be 100 times Wien's wavelength"
+
+    em1(kx) = emissivity_kx_w([Layer(gap.material) ; b1], kx, w)
+    em2(kx) = emissivity_kx_w([Layer(gap.material) ; b2], kx, w)
+
+    tn(kx)  = kx*em1(kx)*em2(kx)*0.25
+    td(kx)  = 1 - ( 1- em1(kx)*0.5)*( 1- em2(kx)*0.5)
+    t(kx)   = tn(kx)/td(kx)
+    t2(u)   = t(u*w/c0)
+
+    (val,err) = quadgk(t2, 0,1; rtol=tolkx)
+    return 2/(w/c0)*val*(planck(w,T1) - planck(w,T2))
+end
+
+"""
+    incoherent_total_heat_transfer(b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, gap :: Layer, T1, T2, w1, w2; tolkx=1e-6)
+
+compute the total radiative heat flux between planar surfaces in the far field,
+considereing total incoherent radiation. This should only be considered correct (less than 5 % error) when the separation
+distance between both objects is larger than 100*λ_wien.
+
+#Arguments:
+- `b1 :: LayerOrMultiLayer`: Multilayer description of body 1
+- `b2 :: LayerOrMultiLayer`: Multilayer description of body 2
+- `gap :: Layer`: Material and thickness of gap separation
+- `T1`: temperature of body 1
+- `T2`: temperature of body 2
+- `w` : frequency in radHz
+- `tolkx = 1e-6`: relative error on integration over kx
+- `tolw = 1e-6`: relative error on integration over the frequency w
+"""
+function incoherent_total_heat_transfer(b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, gap :: Layer, T1,T2,w1,w2;tolkx=1e-6, tolw = 1e-6)
+    u1 = w1*ħ/kb
+    u2 = w2*ħ/kb
+    ht(w) = incoherent_total_heat_transfer_w(b1 ,b2, gap , T1,T2, w ;tolkx=tolkx)
+    ht2(u) = ht(u*kb/ħ)
+    (val,err) = quadgk(ht2, u1 , u2 ; rtol=tolw)
+    return val*kb/ħ
+end
+
+
+"""
+    incoherent_total_heat_transfer(b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, gap :: Layer, T1, T2; tolkx=1e-6)
+
+compute integration over ω from 0 to +∞
+"""
+function incoherent_total_heat_transfer(b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, gap :: Layer, T1,T2;tolkx=1e-6, tolw = 1e-6)
+    ht(w) = incoherent_total_heat_transfer_w(b1 ,b2, gap , T1,T2, w ;tolkx=tolkx)
+    ht2(u) = ht(u*kb/ħ)
+    ht3(t) = ht2(t/(1-t))/(1-t)^2
+    (val,err) = quadgk(ht3, 0 , 1 ; rtol=tolw)
+    return val*kb/ħ
+end
+
+
+
 " Evanescent contribution to radiative heat transfer "
 function transmission_kx_w(:: Evanescent ,b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, gap :: Layer ,pol :: Polarization , kx ,w)
 
