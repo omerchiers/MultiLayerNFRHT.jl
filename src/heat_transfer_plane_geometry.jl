@@ -25,8 +25,9 @@ distance between both objects is larger than 100*λ_wien.
 - `tolkx = 1e-6`: relative error on integration over kx
 """
 function incoherent_total_heat_transfer_w(b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, gap :: Layer, T1,T2,w;tolkx=1e-6)
-   l1 = lambda_wien(T1)
-   l2 = lambda_wien(T2)
+   T1==0.0 ? l1=0.0 : l1 = lambda_wien(T1)
+   T2==0.0 ? l2=0.0 : l2 = lambda_wien(T2)
+
    @assert gap.thickness >= 100*max(l1,l2)  "the gap size should at least be 100 times Wien's wavelength"
 
     em1(kx) = emissivity_kx_w([Layer(gap.material) ; b1], kx, w)
