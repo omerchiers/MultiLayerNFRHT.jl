@@ -45,4 +45,5 @@ end
 
 @testset "total heat transfer" begin
     @test total_heat_transfer(bb_bulk,bb_bulk,gap,1.0,0.0,1e8,1e13) ≈ [6.17311e-14, 6.17343e-14 , 2.83518e-8 , 2.83518e-8 , 5.67038e-8 ] atol=1e-13
+    @test incoherent_total_heat_transfer(bb_bulk, bb_bulk, Layer(Vacuum),1.0,0.0) ≈ 5.67e-8 atol=1e-10
 end
