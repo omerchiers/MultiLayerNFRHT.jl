@@ -299,8 +299,8 @@ function total_transmission_map(b1 :: LayerOrMultiLayer,
                                 kx :: AbstractArray, w :: AbstractArray)
 
     t = zeros(length(w),length(kx))
-    for j = 1:length(w)
-        for i = 1:length(kx)
+    for j = 1:length(kx)
+        for i = 1:length(w)
             t[i,j] = total_transmission_kx_w(b1,b2,gap,kx[j],w[i])
         end
     end
