@@ -131,6 +131,52 @@ function transmission_kx_w(:: Propagative, b1 :: LayerOrMultiLayer, b2 :: LayerO
 
 end
 
+function transmission_kx_w(b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, gap :: Layer, pol :: Polarization, kx, w)
+    valt = 0.0
+    if kx <= w/c0
+        valt += transmission_kx_w(Propagative(), b1, b2 , gap  ,pol , kx ,w)
+    else
+        valt += transmission_kx_w(Evanescent(), b1, b2 , gap  ,pol , kx ,w)
+    end
+    return valt
+end
+
+
+function transmission_map(pol :: Polarization,
+    b1 :: LayerOrMultiLayer,
+    b2 :: LayerOrMultiLayer,
+    gap :: Layer,
+    kx :: AbstractArray, 
+    w :: AbstractArray)
+
+    t = zeros(length(w),length(kx))
+    for j in eachindex(kx)
+        for i in eachindex(w)
+            t[i,j] = transmission_kx_w(b1,b2,gap,pol,kx[j],w[i])
+        end
+    end
+    return t
+end
+
+
+function transmission_map(
+    b1 :: LayerOrMultiLayer,
+    b2 :: LayerOrMultiLayer,
+    gap :: Layer,
+    kx :: AbstractArray, 
+    w :: AbstractArray)
+
+    t = zeros(length(w),length(kx))
+     
+    for j in eachindex(kx)
+        for i in eachindex(w)
+            tte = transmission_kx_w(b1,b2,gap,te(),kx[j],w[i])
+            ttm = transmission_kx_w(b1,b2,gap,tm(),kx[j],w[i])
+            t[i,j] = tte + ttm
+        end
+    end
+    return t
+end
 
 
 " Monocromatic transmission "
@@ -280,29 +326,3 @@ function integrand_double(field :: Evanescent, pol :: Polarization , b1 :: Layer
 end
 
 
-function total_transmission_kx_w(b1 :: LayerOrMultiLayer, b2 :: LayerOrMultiLayer, gap :: Layer, kx, w)
-    valt = 0.0
-    for p in (te(),tm())
-        if kx <= w/c0
-            valt += transmission_kx_w(Propagative(), b1, b2 , gap  ,p , kx ,w)
-        else
-            valt += transmission_kx_w(Evanescent(), b1, b2 , gap  ,p , kx ,w)
-        end
-    end
-    return valt
-end
-
-
-function total_transmission_map(b1 :: LayerOrMultiLayer,
-                                b2 :: LayerOrMultiLayer,
-                                gap :: Layer,
-                                kx :: AbstractArray, w :: AbstractArray)
-
-    t = zeros(length(w),length(kx))
-    for j = 1:length(kx)
-        for i = 1:length(w)
-            t[i,j] = total_transmission_kx_w(b1,b2,gap,kx[j],w[i])
-        end
-    end
-    return t
-end
