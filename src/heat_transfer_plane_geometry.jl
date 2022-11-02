@@ -312,7 +312,7 @@ function integrand_double(field :: Propagative, pol :: Polarization, b1 :: Layer
     u1 = w1*ħ/kb
     u2 = w2*ħ/kb
     integr(x) = (bose_einstein(x[1]*kb/ħ,T1) - bose_einstein(x[1]*kb/ħ,T2))*x[2]*x[1]^2*transmission_kx_w(field ,b1,b2,gap,pol,x[2]*x[1]*kb/ħ/c0,x[1]*kb/ħ)
-    (val,err) = hcubature(integr,[u1,0.0],[u2,1.0]; rtol=tol)
+    (val,err) = hcubature(integr,(u1,0.0),(u2,1.0); rtol=tol)
     return val
 end
 
@@ -321,7 +321,7 @@ function integrand_double(field :: Evanescent, pol :: Polarization , b1 :: Layer
     u2 = w2*ħ/kb
     integr(x)  = (bose_einstein(x[1]*kb/ħ,T1) - bose_einstein(x[1]*kb/ħ,T2))*x[2]*x[1]^2*transmission_kx_w(field ,b1,b2,gap,pol,x[2]*x[1]*kb/ħ/c0,x[1]*kb/ħ)
     integr2(y) = integr([y[1],1 + y[2]/(1-y[2])])/(1-y[2])^2
-    (val,err)  = hcubature(integr2,[u1,0.0],[u2,1.0]; rtol=tol)
+    (val,err)  = hcubature(integr2,(u1,0.0),(u2,1.0); rtol=tol)
     return val
 end
 
