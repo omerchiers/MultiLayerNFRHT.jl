@@ -30,10 +30,27 @@ Planck's Distribution using the definition:
 ```math
 q^{\\text{BB}}(\\omega,T) =  \\Theta(\\omega,T) \\frac{k_0^2}{4\\pi^2}
 ```
+It gives the hemispherical luminance.
+
 """
 function planck(w,T)
     return  bose_einstein(w,T)*(w/c0)^2/(2.0*pi)^2
 end
+
+
+"""
+    planck_kx(w,T)
+
+It is the spectral intensity for a blackbody in W.m^(-2).(rad/s)^(-1).sr^(-1)
+
+"""
+planck_kx(w,T) = planck(w, T)/pi
+
+
+
+
+
+
 
 """
     planck_fraction(w1,w2,T)
@@ -96,7 +113,7 @@ end
 
 
 
-"Total directional emissivity"
+"Total directional emissivity. To be checked!! should be in units per steradian"
 function emissivity_kx(structure,T, kx, wi,wf; rtol=1e-8)
 
     e(u) = emissivity_kx_w(structure, kx, u*kb*T/ħ)*u^3/(exp(u)-1.0)
@@ -106,6 +123,8 @@ function emissivity_kx(structure,T, kx, wi,wf; rtol=1e-8)
 
     return val*kb^4/ħ^3/c0^2/(2.0*pi)^2/sigma
 end
+
+
 
 " Monocromatic hemispherical emissivity"
 function emissivity_w(structure, w; rtol = 1e-8)
@@ -143,3 +162,5 @@ end
 function emissivity_fraction(structure,T,wi,wf;rtol = 1e-8)
     return emissivity_kx(structure,T,0.0,wi,wf;rtol = rtol)/planck_fraction(wi,wf,T)
 end
+
+
