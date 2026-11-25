@@ -8,7 +8,7 @@ struct tm <: Polarization end
 
 abstract type Structure end
 
-struct Bulk{T <:OptProp,U <:OptProp} <: Structure
+struct Bulk{T ,U} <: Structure
     ep1 :: T
     ep2 :: U
 end
