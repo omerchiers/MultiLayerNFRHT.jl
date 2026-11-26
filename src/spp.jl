@@ -26,7 +26,7 @@ function solve_kpar(a,eps1,eps2,eps3,w)
     return fzero(f,w/c0,order = 16)
 end
 
-function dispersion_relation(a,material1 :: OptProp, material2 :: OptProp, material3 :: OptProp )
+function dispersion_relation(a,material1 :: OpticalProperty, material2 :: OpticalProperty, material3 :: OpticalProperty )
     wv = collect(linspace(1.0e13,1.0e15,1000))
     eps1 = permittivity.([material1],wv)
     eps2 = permittivity.([material2],wv)
